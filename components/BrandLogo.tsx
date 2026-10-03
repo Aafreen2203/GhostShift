@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 /** Full GhostShift MEMORY AGENT banner */
-const LOGO_SRC = "/brand/ghostshift-logo.png";
+const LOGO_SRC = "/brand/ghostshift-logo.jpg";
 
 type BrandLogoProps = {
   /** Where the logo appears — controls size. */
