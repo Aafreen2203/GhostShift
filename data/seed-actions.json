@@ -298,5 +298,245 @@
     "outcome": "resolved",
     "successful": true,
     "timestamp": "2026-07-18T17:05:00.000Z"
+  },
+  {
+    "_id": "ACT-031",
+    "incidentId": "INC-010",
+    "serviceId": "payment-api",
+    "action": "Restart Payment API Kubernetes deployment",
+    "result": "Timeouts paused briefly, then returned as connections climbed back to 96/100.",
+    "outcome": "temporary",
+    "successful": false,
+    "timestamp": "2026-08-04T15:25:00.000Z"
+  },
+  {
+    "_id": "ACT-032",
+    "incidentId": "INC-010",
+    "serviceId": "payment-api",
+    "action": "Increase API timeout from 3s to 8s",
+    "result": "Clients waited longer but still failed. Pool saturation remained the bottleneck.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-08-04T15:48:00.000Z"
+  },
+  {
+    "_id": "ACT-033",
+    "incidentId": "INC-010",
+    "serviceId": "payment-api",
+    "action": "Defer non-critical reporting queries and verify pool headroom",
+    "result": "Active connections dropped below 70/100 and intermittent checkout timeouts stopped.",
+    "outcome": "resolved",
+    "successful": true,
+    "timestamp": "2026-08-04T16:25:00.000Z"
+  },
+  {
+    "_id": "ACT-034",
+    "incidentId": "INC-011",
+    "serviceId": "payment-api",
+    "action": "Restart Payment API Kubernetes deployment",
+    "result": "No lasting improvement. Slow settlement queries continued holding connections.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-08-22T11:20:00.000Z"
+  },
+  {
+    "_id": "ACT-035",
+    "incidentId": "INC-011",
+    "serviceId": "payment-api",
+    "action": "Increase database connection pool maximum",
+    "result": "Bought a few minutes of headroom, then the same slow queries refilled the larger pool.",
+    "outcome": "temporary",
+    "successful": false,
+    "timestamp": "2026-08-22T11:55:00.000Z"
+  },
+  {
+    "_id": "ACT-036",
+    "incidentId": "INC-011",
+    "serviceId": "payment-api",
+    "action": "Inspect MongoDB slow query log and query plans",
+    "result": "Settlement lookups were collection-scanning without a compound index.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-08-22T12:20:00.000Z"
+  },
+  {
+    "_id": "ACT-037",
+    "incidentId": "INC-011",
+    "serviceId": "payment-api",
+    "action": "Create compound MongoDB index on settlement lookup fields",
+    "result": "Query duration collapsed, connection usage normalised, and payment timeouts stopped.",
+    "outcome": "resolved",
+    "successful": true,
+    "timestamp": "2026-08-22T13:05:00.000Z"
+  },
+  {
+    "_id": "ACT-038",
+    "incidentId": "INC-012",
+    "serviceId": "payment-api",
+    "action": "Restart Payment API pods",
+    "result": "Validation errors continued for the same multi-currency carts.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-09-03T09:55:00.000Z"
+  },
+  {
+    "_id": "ACT-039",
+    "incidentId": "INC-012",
+    "serviceId": "payment-api",
+    "action": "Inspect database health and connection pool metrics",
+    "result": "Pool and latency were healthy. Failures were deterministic validation rejects.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-09-03T10:15:00.000Z"
+  },
+  {
+    "_id": "ACT-040",
+    "incidentId": "INC-012",
+    "serviceId": "payment-api",
+    "action": "Align currency rounding mode with catalogue pricing rules",
+    "result": "Multi-currency totals validated correctly and checkout succeeded.",
+    "outcome": "resolved",
+    "successful": true,
+    "timestamp": "2026-09-03T10:55:00.000Z"
+  },
+  {
+    "_id": "ACT-041",
+    "incidentId": "INC-013",
+    "serviceId": "payment-api",
+    "action": "Restart Payment API Kubernetes deployment",
+    "result": "Temporary relief only; five connections refilled immediately.",
+    "outcome": "temporary",
+    "successful": false,
+    "timestamp": "2025-11-02T10:20:00.000Z"
+  },
+  {
+    "_id": "ACT-042",
+    "incidentId": "INC-013",
+    "serviceId": "payment-api",
+    "action": "Increase database connection pool maximum from 5 to 20",
+    "result": "Legacy payments-primary stopped timing out under then-current traffic.",
+    "outcome": "resolved",
+    "successful": true,
+    "timestamp": "2025-11-02T12:05:00.000Z"
+  },
+  {
+    "_id": "ACT-043",
+    "incidentId": "INC-014",
+    "serviceId": "payment-api",
+    "action": "Restart Payment API Kubernetes deployment",
+    "result": "No change. DNS answers inside pods remained stale.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-09-14T18:35:00.000Z"
+  },
+  {
+    "_id": "ACT-044",
+    "incidentId": "INC-014",
+    "serviceId": "payment-api",
+    "action": "Increase database connection pool maximum",
+    "result": "Unnecessary. MongoDB metrics were already healthy.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-09-14T18:55:00.000Z"
+  },
+  {
+    "_id": "ACT-045",
+    "incidentId": "INC-014",
+    "serviceId": "payment-api",
+    "action": "Flush DNS caches and shorten provider hostname TTL",
+    "result": "Authorisation hosts resolved correctly and intermittent timeouts stopped.",
+    "outcome": "resolved",
+    "successful": true,
+    "timestamp": "2026-09-14T19:30:00.000Z"
+  },
+  {
+    "_id": "ACT-046",
+    "incidentId": "INC-015",
+    "serviceId": "auth-service",
+    "action": "Restart Authentication Service pods",
+    "result": "MFA still failed because the SMS provider remained unavailable.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-09-20T12:25:00.000Z"
+  },
+  {
+    "_id": "ACT-047",
+    "incidentId": "INC-015",
+    "serviceId": "auth-service",
+    "action": "Increase Redis connection pool maximum",
+    "result": "No effect. Session store was not the failure point.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-09-20T12:45:00.000Z"
+  },
+  {
+    "_id": "ACT-048",
+    "incidentId": "INC-015",
+    "serviceId": "auth-service",
+    "action": "Enable email-OTP MFA fallback while fictional-sms is degraded",
+    "result": "Users completed MFA via email and login success recovered.",
+    "outcome": "resolved",
+    "successful": true,
+    "timestamp": "2026-09-20T13:30:00.000Z"
+  },
+  {
+    "_id": "ACT-049",
+    "incidentId": "INC-016",
+    "serviceId": "notification-service",
+    "action": "Restart notification workers",
+    "result": "Workers immediately re-entered the broken template retry loop.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-09-28T08:40:00.000Z"
+  },
+  {
+    "_id": "ACT-050",
+    "incidentId": "INC-016",
+    "serviceId": "notification-service",
+    "action": "Inspect worker error logs for template render failures",
+    "result": "Handlebars parse error on password-reset template revision 2026-09-28.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-09-28T08:55:00.000Z"
+  },
+  {
+    "_id": "ACT-051",
+    "incidentId": "INC-016",
+    "serviceId": "notification-service",
+    "action": "Rollback password-reset template to previous revision",
+    "result": "Render succeeded and the queue drained for all notification types.",
+    "outcome": "resolved",
+    "successful": true,
+    "timestamp": "2026-09-28T09:10:00.000Z"
+  },
+  {
+    "_id": "ACT-052",
+    "incidentId": "INC-017",
+    "serviceId": "payment-api",
+    "action": "Restart Payment API Kubernetes deployment",
+    "result": "EU tax path still timed out; payment pods were not the fault domain.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-10-01T07:10:00.000Z"
+  },
+  {
+    "_id": "ACT-053",
+    "incidentId": "INC-017",
+    "serviceId": "payment-api",
+    "action": "Inspect tax calculator sidecar CPU and reload logs",
+    "result": "eu-west-1 tax-calc was pegged after a concurrent ruleset reload.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-10-01T07:22:00.000Z"
+  },
+  {
+    "_id": "ACT-054",
+    "incidentId": "INC-017",
+    "serviceId": "payment-api",
+    "action": "Restart tax calculator and cap ruleset reload concurrency",
+    "result": "EU VAT calculations returned and checkout completed without calling the provider prematurely.",
+    "outcome": "resolved",
+    "successful": true,
+    "timestamp": "2026-10-01T07:38:00.000Z"
   }
 ]

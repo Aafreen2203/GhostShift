@@ -8,7 +8,6 @@ import {
   Ghost,
   Radio,
 } from "lucide-react";
-import { BrandLogo } from "@/components/BrandLogo";
 import { IncidentCard } from "@/components/IncidentCard";
 import { SystemStatus } from "@/components/SystemStatus";
 import { deriveServiceHealth } from "@/lib/service-health";
@@ -349,19 +348,16 @@ export default function DashboardPage() {
 
       <section className="gs-panel gs-panel-mongo p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-            <BrandLogo variant="inline" />
-            <div>
-              <p className="text-sm font-semibold text-slate-900">
-                GhostShift Memory
-              </p>
-              <p className="mt-0.5 text-sm text-slate-700">
-                {resolvedCount} historical incidents indexed in MongoDB
-              </p>
-              <p className="mt-2 text-xs text-gs-mongo-ink">
-                Semantic Memory · 384-d embeddings · Vector Search · Aggregation
-              </p>
-            </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">
+              GhostShift Memory
+            </p>
+            <p className="mt-0.5 text-sm text-slate-700">
+              {resolvedCount} historical incidents indexed in MongoDB
+            </p>
+            <p className="mt-2 text-xs text-gs-mongo-ink">
+              Semantic Memory · 384-d embeddings · Vector Search · Aggregation
+            </p>
           </div>
           <Link
             href="/search"

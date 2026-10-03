@@ -31,6 +31,12 @@ type SearchBrief = {
   triedAlready: string[];
   triedAlreadyStats?: TriedAlreadyStat[];
   recommendedNext: string[];
+  recommendations?: Array<{
+    text: string;
+    confidence: number;
+    evidenceIncidentId?: string;
+  }>;
+  confidence?: number;
   uncertaintyNote?: string;
   evidenceIds?: string[];
   aiSource?: "evidence_only" | "openai_grounded";
@@ -41,6 +47,35 @@ type SearchBrief = {
     source: string;
   }>;
 };
+
+/** Demo prompts that exercise different confidence / conflict paths. */
+const SCENARIO_QUERIES = [
+  {
+    label: "High confidence · pool saturation",
+    query:
+      "Payment API intermittently timing out and database connections near capacity at 96/100.",
+  },
+  {
+    label: "Conflict · similar symptoms",
+    query:
+      "Payment timeouts and elevated latency, but unclear if pool, provider, DNS, or missing index.",
+  },
+  {
+    label: "Low confidence · sparse match",
+    query:
+      "EU VAT calculation timeout; tax microservice unreachable; payment provider never called.",
+  },
+  {
+    label: "Outdated knowledge",
+    query:
+      "Legacy payments-primary connection pool exhaustion with only 5 max connections.",
+  },
+  {
+    label: "Tried restart already",
+    query:
+      "Intermittent payment timeouts under load. Restarting pods only helped temporarily.",
+  },
+] as const;
 
 export function SearchClient() {
   const searchParams = useSearchParams();
@@ -163,6 +198,21 @@ export function SearchClient() {
           placeholder="Payment requests intermittently time out when traffic increases."
           className="gs-input"
         />
+        <div className="flex flex-wrap gap-2">
+          {SCENARIO_QUERIES.map((scenario) => (
+            <button
+              key={scenario.label}
+              type="button"
+              onClick={() => {
+                setQuery(scenario.query);
+                void runSearch(scenario.query);
+              }}
+              className="rounded-full border border-gs-border bg-slate-50 px-2.5 py-1 text-[11px] text-slate-700 transition hover:border-cyan-400/40 hover:bg-cyan-50"
+            >
+              {scenario.label}
+            </button>
+          ))}
+        </div>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-[11px] text-gs-muted">
             Searching:{" "}

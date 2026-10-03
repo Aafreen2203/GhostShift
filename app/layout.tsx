@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   description:
     "Institutional memory for engineering teams. When people leave, their technical knowledge shouldn’t leave with them.",
   icons: {
-    icon: "/brand/ghostshift-logo.jpg",
-    apple: "/brand/ghostshift-logo.jpg",
+    icon: "/brand/ghostshift-mark.png",
+    apple: "/brand/ghostshift-mark.png",
   },
 };
 

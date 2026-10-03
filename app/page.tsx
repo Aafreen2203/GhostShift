@@ -14,17 +14,19 @@ const flow = [
 export default function Home() {
   return (
     <main className="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-4 py-12 sm:px-8">
-      <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
         <section>
-          <BrandLogo variant="hero" priority className="mb-6" />
-          <p className="mt-2 text-xl text-slate-700">
+          <div className="rounded-2xl border border-gs-border bg-white/90 px-5 py-6 shadow-sm sm:px-7 sm:py-8">
+            <BrandLogo variant="hero" priority />
+          </div>
+          <p className="mt-6 text-xl font-medium text-slate-800">
             Institutional memory for engineering teams.
           </p>
-          <p className="mt-4 max-w-xl text-base leading-7 text-gs-muted">
+          <p className="mt-3 max-w-xl text-base leading-7 text-slate-600">
             When people leave, their technical knowledge shouldn&apos;t leave with
             them.
           </p>
-          <p className="mt-4 max-w-xl text-sm leading-6 text-slate-500">
+          <p className="mt-3 max-w-xl text-sm leading-6 text-slate-500">
             Retrieve similar failures, previous troubleshooting attempts, temporary
             fixes, and verified resolutions — powered by MongoDB Vector Search and
             evidence-grounded AI.

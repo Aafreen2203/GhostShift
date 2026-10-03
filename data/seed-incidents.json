@@ -218,5 +218,207 @@
     },
     "createdAt": "2026-07-18T16:10:00.000Z",
     "resolvedAt": "2026-07-18T17:25:00.000Z"
+  },
+  {
+    "_id": "INC-010",
+    "serviceId": "payment-api",
+    "title": "Checkout timeouts while MongoDB pool sat at 96 of 100 connections",
+    "summary": "Near-identical to peak-traffic saturation: payment requests intermittently timed out while database connections stayed near the configured maximum and latency climbed above 800 ms.",
+    "symptoms": [
+      "payment requests intermittently time out",
+      "database connections near capacity",
+      "API latency increases",
+      "checkout failures during traffic spikes",
+      "connection pool utilisation above 90 percent"
+    ],
+    "rootCause": "Database connection pool saturation under checkout load.",
+    "resolution": "Temporarily shed non-critical reporting queries and confirmed pool sizing matched traffic; permanent fix kept pool max at 100 with query budgeting.",
+    "status": "resolved",
+    "severity": "high",
+    "historicalConfig": {
+      "database": "payments-prod-v2",
+      "connectionPoolMax": 100,
+      "timeoutMs": 3000,
+      "provider": "fictional-pay",
+      "workerReplicas": 6
+    },
+    "createdAt": "2026-08-04T15:10:00.000Z",
+    "resolvedAt": "2026-08-04T16:40:00.000Z"
+  },
+  {
+    "_id": "INC-011",
+    "serviceId": "payment-api",
+    "title": "Payment timeouts from a missing MongoDB index on settlement lookups",
+    "summary": "Payment API latency and intermittent timeouts rose while connection counts looked elevated, but the real issue was collection scans on settlement lookups holding connections open.",
+    "symptoms": [
+      "payment requests intermittently time out",
+      "API latency increases",
+      "database connection utilisation approaches capacity",
+      "slow settlement queries",
+      "MongoDB query duration spikes"
+    ],
+    "rootCause": "Missing compound index on settlement lookup queries caused long-running operations that exhausted the pool.",
+    "resolution": "Created the missing MongoDB index and confirmed query plans no longer scanned the full collection.",
+    "status": "resolved",
+    "severity": "high",
+    "historicalConfig": {
+      "database": "payments-prod-v2",
+      "connectionPoolMax": 100,
+      "timeoutMs": 3000,
+      "provider": "fictional-pay"
+    },
+    "createdAt": "2026-08-22T11:05:00.000Z",
+    "resolvedAt": "2026-08-22T13:20:00.000Z"
+  },
+  {
+    "_id": "INC-012",
+    "serviceId": "payment-api",
+    "title": "Currency rounding rejected multi-currency checkout totals",
+    "summary": "A small subset of international checkouts failed immediately with validation errors after a pricing change introduced half-cent rounding mismatches. Database and provider health were normal.",
+    "symptoms": [
+      "multi-currency checkout rejected",
+      "validation error on payment total",
+      "currency rounding mismatch",
+      "no elevated database latency",
+      "provider authentication succeeds"
+    ],
+    "rootCause": "Half-cent rounding mismatch between catalogue pricing and Payment API total validation.",
+    "resolution": "Aligned rounding rules to banker's rounding for ISO currency minor units and redeployed Payment API.",
+    "status": "resolved",
+    "severity": "medium",
+    "historicalConfig": {
+      "database": "payments-prod-v2",
+      "connectionPoolMax": 100,
+      "timeoutMs": 3000,
+      "provider": "fictional-pay",
+      "currencyRoundingMode": "half-up"
+    },
+    "createdAt": "2026-09-03T09:40:00.000Z",
+    "resolvedAt": "2026-09-03T11:15:00.000Z"
+  },
+  {
+    "_id": "INC-013",
+    "serviceId": "payment-api",
+    "title": "Legacy pool exhaustion on payments-primary with max 5 connections",
+    "summary": "Very old incident from the legacy payments-primary cluster where a tiny pool of 5 connections collapsed under modest traffic. Useful as outdated historical knowledge versus today's payments-prod-v2 / pool 100 environment.",
+    "symptoms": [
+      "payment requests intermittently time out",
+      "database connection utilisation approaches capacity",
+      "API latency increases",
+      "legacy cluster connection waits"
+    ],
+    "rootCause": "Legacy database connection pool of 5 was far too small for checkout concurrency.",
+    "resolution": "Raised legacy pool max from 5 to 20 on payments-primary (later migrated away from this cluster).",
+    "status": "resolved",
+    "severity": "high",
+    "historicalConfig": {
+      "database": "payments-primary",
+      "connectionPoolMax": 5,
+      "timeoutMs": 10000,
+      "provider": "fictional-pay",
+      "workerReplicas": 1
+    },
+    "createdAt": "2025-11-02T10:00:00.000Z",
+    "resolvedAt": "2025-11-02T12:30:00.000Z"
+  },
+  {
+    "_id": "INC-014",
+    "serviceId": "payment-api",
+    "title": "Intermittent payment timeouts after DNS cache returned stale authorisation hosts",
+    "summary": "Checkout latency and timeouts appeared similar to saturation incidents, but MongoDB pool metrics were healthy. Stale DNS answers sent authorisation calls to a decommissioned fictional-pay endpoint.",
+    "symptoms": [
+      "payment requests intermittently time out",
+      "elevated latency",
+      "some requests time out",
+      "database connections healthy",
+      "provider host resolution inconsistent"
+    ],
+    "rootCause": "Stale DNS cache pointed fictional-pay authorisation traffic at a retired hostname.",
+    "resolution": "Flushed DNS caches and shortened TTL for the provider hostname; authorisation endpoints resolved correctly again.",
+    "status": "resolved",
+    "severity": "medium",
+    "historicalConfig": {
+      "database": "payments-prod-v2",
+      "connectionPoolMax": 100,
+      "timeoutMs": 3000,
+      "provider": "fictional-pay",
+      "backupProvider": "fictional-pay-backup"
+    },
+    "createdAt": "2026-09-14T18:20:00.000Z",
+    "resolvedAt": "2026-09-14T19:45:00.000Z"
+  },
+  {
+    "_id": "INC-015",
+    "serviceId": "auth-service",
+    "title": "MFA challenge failures during upstream SMS provider outage",
+    "summary": "Password login succeeded but MFA challenges failed broadly while the fictional-sms provider returned 503s. Redis session metrics remained healthy.",
+    "symptoms": [
+      "MFA challenge fails",
+      "SMS delivery unavailable",
+      "password login succeeds",
+      "upstream 503 from SMS provider",
+      "session store healthy"
+    ],
+    "rootCause": "Upstream SMS provider regional outage blocked MFA delivery.",
+    "resolution": "Enabled email-OTP fallback for MFA until fictional-sms recovered.",
+    "status": "resolved",
+    "severity": "high",
+    "historicalConfig": {
+      "sessionStore": "redis-sessions-v3",
+      "redisPoolMax": 50,
+      "mfaProvider": "fictional-sms",
+      "mfaFallback": "disabled"
+    },
+    "createdAt": "2026-09-20T12:10:00.000Z",
+    "resolvedAt": "2026-09-20T13:55:00.000Z"
+  },
+  {
+    "_id": "INC-016",
+    "serviceId": "notification-service",
+    "title": "Broken Handlebars template stopped all password-reset emails",
+    "summary": "A template deploy introduced a Handlebars syntax error. Workers stayed busy retrying a single broken template while other notification types queued behind it.",
+    "symptoms": [
+      "password-reset emails never arrive",
+      "template render errors",
+      "workers retrying same message",
+      "queue depth increasing for one template",
+      "other notification types delayed"
+    ],
+    "rootCause": "Invalid Handlebars expression in the password-reset email template.",
+    "resolution": "Rolled back the template revision and added a render dry-run check to the notification deploy pipeline.",
+    "status": "resolved",
+    "severity": "medium",
+    "historicalConfig": {
+      "queue": "notifications",
+      "workerConcurrency": 8,
+      "provider": "fictional-mail",
+      "templateSet": "notifications-2026-09-28"
+    },
+    "createdAt": "2026-09-28T08:30:00.000Z",
+    "resolvedAt": "2026-09-28T09:20:00.000Z"
+  },
+  {
+    "_id": "INC-017",
+    "serviceId": "payment-api",
+    "title": "Sparse evidence case: single-region tax calculator timeout",
+    "summary": "Only EU checkout paths failed when a rarely used tax microservice timed out. Almost no overlapping symptoms with database pool saturation, so semantic search should score this weakly against pool incidents.",
+    "symptoms": [
+      "EU VAT calculation timeout",
+      "tax microservice unreachable",
+      "checkout fails only for EU destinations",
+      "payment provider never called"
+    ],
+    "rootCause": "Tax calculator sidecar in eu-west-1 exhausted CPU after a ruleset reload.",
+    "resolution": "Restarted the tax calculator deployment and capped ruleset reload concurrency.",
+    "status": "resolved",
+    "severity": "low",
+    "historicalConfig": {
+      "database": "payments-prod-v2",
+      "connectionPoolMax": 100,
+      "taxCalculator": "tax-calc-eu-1",
+      "provider": "fictional-pay"
+    },
+    "createdAt": "2026-10-01T07:00:00.000Z",
+    "resolvedAt": "2026-10-01T07:45:00.000Z"
   }
 ]

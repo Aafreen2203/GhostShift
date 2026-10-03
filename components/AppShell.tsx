@@ -94,11 +94,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const sidebar = (
     <div className="flex h-full flex-col">
-      <Link href="/" className="block px-3 py-4" aria-label="GhostShift home">
+      <Link
+        href="/"
+        className="mx-3 mt-3 mb-2 block rounded-xl border border-gs-border bg-gradient-to-br from-white via-slate-50 to-cyan-50/40 px-3 py-3 shadow-sm transition hover:border-cyan-400/35"
+        aria-label="GhostShift home"
+      >
         <BrandLogo variant="sidebar" priority />
       </Link>
 
-      <div className="px-4 pb-2">
+      <div className="px-4 pb-2 pt-2">
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
           Navigation
         </p>
@@ -207,16 +211,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               >
                 <Menu className="h-4 w-4" />
               </button>
-              <div className="flex items-center gap-3">
-                <BrandLogo variant="header" className="hidden sm:block lg:hidden" />
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                    GhostShift
-                  </p>
-                  <h1 className="text-sm font-semibold text-slate-900">
-                    {pageTitle(pathname)}
-                  </h1>
-                </div>
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                  GhostShift
+                </p>
+                <h1 className="truncate text-sm font-semibold text-slate-900">
+                  {pageTitle(pathname)}
+                </h1>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-[11px]">
