@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Check, LoaderCircle } from "lucide-react";
+import { searchEngineLabel } from "@/lib/search-labels";
+import { SearchEngineBadge } from "./SearchEngineBadge";
 import { MONGO_TRACE } from "./constants";
 import type { MongoTraceData } from "./types";
 
@@ -28,12 +30,24 @@ const STAGE_ORDER: StageId[] = [
   "human",
 ];
 
-function searchLabel(source?: string): string {
-  if (source === "atlas_vector_search") return "MongoDB Atlas Vector Search";
-  if (source === "cosine_fallback") {
-    return "Cosine ranking over stored MongoDB embeddings";
-  }
-  return "MongoDB similarity search";
+const PIPELINE: Array<{ id: StageId; label: string; kind: "mongo" | "ai" | "flow" }> = [
+  { id: "incident", label: "Current incident", kind: "flow" },
+  { id: "embed", label: "Embedding", kind: "flow" },
+  { id: "vector", label: "MongoDB Vector Search", kind: "mongo" },
+  { id: "matches", label: "Historical matches", kind: "mongo" },
+  { id: "agg", label: "MongoDB Aggregation", kind: "mongo" },
+  { id: "ai", label: "AI evidence brief", kind: "ai" },
+];
+
+function stageState(
+  stageId: StageId,
+  activeIndex: number,
+  complete: boolean,
+): "pending" | "active" | "done" {
+  const index = STAGE_ORDER.indexOf(stageId);
+  if (complete || index < activeIndex) return "done";
+  if (index === activeIndex) return "active";
+  return "pending";
 }
 
 export function MongoMemoryEngine({
@@ -65,7 +79,7 @@ export function MongoMemoryEngine({
         return;
       }
       setActiveIndex(index);
-    }, 180);
+    }, 220);
     return () => window.clearInterval(id);
   }, [running, data]);
 
@@ -83,21 +97,21 @@ export function MongoMemoryEngine({
 
   const labels: Record<StageId, { title: string; detail: string }> = {
     incident: {
-      title: "Current failure",
-      detail: data?.queryLabel ?? "Incident context ready",
+      title: "Incident context ready",
+      detail: data?.queryLabel ?? "Current failure loaded for investigation",
     },
     embed: {
-      title: "Generate query embedding",
-      detail: `${MONGO_TRACE.embeddingDimensions}-d vector · path ${MONGO_TRACE.embeddingPath}`,
+      title: "Query embedded",
+      detail: MONGO_TRACE.embeddingLabel,
     },
     vector: {
-      title: searchLabel(matchSource),
-      detail: `Collection: ${MONGO_TRACE.collections.incidents} · Index: ${MONGO_TRACE.vectorIndex}`,
+      title: "Historical memory searched",
+      detail: `${searchEngineLabel(matchSource)} · index ${MONGO_TRACE.vectorIndex} · ${MONGO_TRACE.embeddingSimilarity}`,
     },
     matches: {
       title:
         matchCount > 0
-          ? `${matchCount} semantic match${matchCount === 1 ? "" : "es"}`
+          ? `${matchCount} match${matchCount === 1 ? "" : "es"} retrieved`
           : running
             ? "Scanning incident memories…"
             : "No semantic matches returned",
@@ -107,13 +121,13 @@ export function MongoMemoryEngine({
               .slice(0, 3)
               .map(
                 (m) =>
-                  `${m.incidentId} ${Math.round(m.score * 100)}%`,
+                  `${m.incidentId}   ${Math.round(m.score * 100)}%`,
               )
               .join(" · ")
-          : `Querying ${MONGO_TRACE.collections.incidents}`,
+          : `Collection: ${MONGO_TRACE.collections.incidents}`,
     },
     actions: {
-      title: "Historical actions retrieved",
+      title: "Previous actions analysed",
       detail:
         typeof data?.actionsRetrieved === "number"
           ? `${data.actionsRetrieved} action document(s) from ${MONGO_TRACE.collections.actions}`
@@ -134,27 +148,45 @@ export function MongoMemoryEngine({
           : "Incident + action evidence",
     },
     ai: {
-      title: "GhostShift AI brief",
+      title: "Evidence brief generated",
       detail:
         data?.aiSource === "openai_grounded"
-          ? "Evidence + grounded model wording"
-          : "Evidence-only brief from MongoDB memory",
+          ? "GhostShift AI · grounded on MongoDB evidence"
+          : "GhostShift AI · evidence-only brief from MongoDB memory",
     },
     human: {
-      title: "Human engineer decides",
-      detail: "No autonomous remediation",
+      title: "Human verification required",
+      detail: "Engineer decides — no autonomous remediation",
     },
   };
 
   return (
-    <section className="gs-panel border-emerald-500/25 p-4">
+    <section className="gs-panel gs-panel-mongo p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-700">
-          👻 GhostShift Memory Engine
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gs-mongo-ink">
+          GhostShift Memory Trace
         </p>
-        <p className="text-[10px] uppercase tracking-wider text-gs-muted">
-          MongoDB retrieves evidence · AI assists
-        </p>
+        {matchSource ? <SearchEngineBadge source={matchSource} /> : null}
+      </div>
+
+      <div className="gs-trace-pipeline mt-3">
+        {PIPELINE.map((step, index) => {
+          const state = stageState(step.id, activeIndex, complete);
+          return (
+            <div key={step.id} className="flex items-center gap-1">
+              <span
+                className="gs-trace-step"
+                data-state={state}
+                data-kind={step.kind}
+              >
+                {step.label}
+              </span>
+              {index < PIPELINE.length - 1 ? (
+                <span className="text-[10px] text-slate-300">→</span>
+              ) : null}
+            </div>
+          );
+        })}
       </div>
 
       <ol className="mt-4 space-y-2">
@@ -165,12 +197,17 @@ export function MongoMemoryEngine({
           const isMongo = ["vector", "matches", "actions", "agg"].includes(
             stageId,
           );
+          const isAi = stageId === "ai" || stageId === "evidence";
           return (
             <li
               key={stageId}
               className={`flex gap-3 rounded-md border px-3 py-2 transition ${
                 current
-                  ? "border-emerald-400/40 bg-emerald-500/10"
+                  ? isAi
+                    ? "border-cyan-400/40 bg-gradient-to-r from-cyan-50 to-violet-50"
+                    : isMongo
+                      ? "border-emerald-400/45 bg-emerald-500/10"
+                      : "border-slate-300 bg-slate-50"
                   : done
                     ? "border-gs-border bg-slate-50"
                     : "border-transparent bg-transparent opacity-45"
@@ -178,22 +215,43 @@ export function MongoMemoryEngine({
             >
               <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
                 {done ? (
-                  <Check className="h-3.5 w-3.5 text-emerald-700" />
+                  <Check
+                    className={`h-3.5 w-3.5 ${
+                      isAi
+                        ? "text-gs-violet"
+                        : isMongo
+                          ? "text-gs-mongo-ink"
+                          : "text-slate-600"
+                    }`}
+                  />
                 ) : current ? (
-                  <LoaderCircle className="h-3.5 w-3.5 animate-spin text-emerald-700" />
+                  <LoaderCircle
+                    className={`h-3.5 w-3.5 animate-spin ${
+                      isAi
+                        ? "text-gs-cyan"
+                        : isMongo
+                          ? "text-gs-mongo-ink"
+                          : "text-slate-600"
+                    }`}
+                  />
                 ) : (
-                  <span className="h-1.5 w-1.5 rounded-full bg-gs-muted" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
                 )}
               </span>
               <div className="min-w-0">
                 <p
                   className={`text-sm font-medium ${
-                    isMongo ? "text-emerald-800" : "text-slate-900"
+                    isAi
+                      ? "text-violet-800"
+                      : isMongo
+                        ? "text-gs-mongo-ink"
+                        : "text-slate-900"
                   }`}
                 >
+                  {done || current ? "✓ " : ""}
                   {stage.title}
                 </p>
-                <p className="gs-mono mt-0.5 truncate text-[11px] text-gs-muted">
+                <p className="gs-mono mt-0.5 truncate text-[11px] text-slate-500">
                   {stage.detail}
                 </p>
               </div>

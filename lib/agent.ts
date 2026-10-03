@@ -20,12 +20,24 @@ export type TriedAlreadyStat = {
   incidentIds: string[];
 };
 
+export type Recommendation = {
+  text: string;
+  /** 0–1 evidence-grounded confidence for this suggestion */
+  confidence: number;
+  evidenceIncidentId?: string;
+  basis: "historical_resolution" | "ai_investigation";
+};
+
 export type IncidentBrief = {
   incidentId: string;
   summary: string;
   triedAlready: string[];
   triedAlreadyStats: TriedAlreadyStat[];
+  /** @deprecated Prefer recommendations — kept for older clients as plain strings */
   recommendedNext: string[];
+  recommendations: Recommendation[];
+  /** 0–1 overall confidence in the investigation brief */
+  confidence: number;
   evidenceIds: string[];
   freshnessOutdated: boolean;
   freshnessNotes: string[];
@@ -52,12 +64,75 @@ function mapActionsToLines(actions: IncidentAction[]): string[] {
   });
 }
 
+function clamp01(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.min(1, Math.max(0, value));
+}
+
+/** Normalize similarity scores (cosine 0–1, or percent-like values). */
+function normalizeScore(score: number): number {
+  if (!Number.isFinite(score)) return 0;
+  if (score > 1 && score <= 100) return clamp01(score / 100);
+  return clamp01(score);
+}
+
+function roundConfidence(value: number): number {
+  return Math.round(clamp01(value) * 100) / 100;
+}
+
+function deriveBriefConfidence(args: {
+  similar: Array<{ score: number }>;
+  freshnessOutdated?: boolean;
+  distinctRootCauses: number;
+  aiConfidence?: number;
+}): number {
+  if (typeof args.aiConfidence === "number") {
+    return roundConfidence(args.aiConfidence);
+  }
+  if (args.similar.length === 0) return 0.12;
+
+  const top = normalizeScore(args.similar[0]!.score);
+  const support = Math.min(args.similar.length, 4) * 0.05;
+  let confidence = top * 0.72 + support + 0.12;
+  if (args.freshnessOutdated) confidence *= 0.78;
+  if (args.distinctRootCauses > 1) confidence *= 0.82;
+  return roundConfidence(confidence);
+}
+
+function buildResolutionRecommendations(
+  actions: IncidentAction[],
+  scoreByIncident: Map<string, number>,
+  fallbackScore: number,
+): Recommendation[] {
+  return actions
+    .filter((action) => action.outcome === "resolved")
+    .map((action) => {
+      const matchScore = scoreByIncident.get(action.incidentId);
+      const confidence = roundConfidence(
+        normalizeScore(matchScore ?? fallbackScore) * 0.92 + 0.05,
+      );
+      return {
+        text: `Historical resolution on ${action.incidentId}: ${action.action}`,
+        confidence,
+        evidenceIncidentId: action.incidentId,
+        basis: "historical_resolution" as const,
+      };
+    })
+    .sort((a, b) => b.confidence - a.confidence);
+}
+
 async function maybeEnrichWithOpenAI(args: {
   incident: Incident;
   service: Service | null;
   historical: ReturnType<typeof toHistoricalIncident>[];
   baseSummary: string;
-}): Promise<{ summary: string; aiSource: IncidentBrief["aiSource"]; uncertaintyNote?: string }> {
+}): Promise<{
+  summary: string;
+  aiSource: IncidentBrief["aiSource"];
+  uncertaintyNote?: string;
+  confidence?: number;
+  aiSuggestion?: Recommendation;
+}> {
   if (!process.env.OPENAI_API_KEY) {
     return {
       summary: args.baseSummary,
@@ -79,6 +154,7 @@ async function maybeEnrichWithOpenAI(args: {
 
     const suggestion = analysis.suggestedInvestigation?.suggestion;
     const conflict = analysis.conflicts?.[0]?.description;
+    const confidence = roundConfidence(analysis.confidence);
 
     const summary = [
       analysis.summary,
@@ -92,6 +168,16 @@ async function maybeEnrichWithOpenAI(args: {
       summary,
       aiSource: "openai_grounded",
       uncertaintyNote: conflict,
+      confidence,
+      aiSuggestion: suggestion
+        ? {
+            text: suggestion,
+            confidence,
+            basis: "ai_investigation",
+            evidenceIncidentId:
+              analysis.suggestedInvestigation.evidence?.[0]?.sourceId,
+          }
+        : undefined,
     };
   } catch (error) {
     console.error(
@@ -155,7 +241,6 @@ export async function analyseIncident(incidentId: string): Promise<IncidentBrief
       hit.score,
     ),
   );
-  // Include the incident itself when analysing a historical case.
   if (incident.status === "resolved") {
     historicalForAi.unshift(
       toHistoricalIncident(incident, actionsByIncident.get(incident._id) ?? []),
@@ -182,12 +267,17 @@ export async function analyseIncident(incidentId: string): Promise<IncidentBrief
     ...mapActionsToLines(relatedActions),
   ];
 
+  const scoreByIncident = new Map(
+    similar.map((hit) => [hit.incident._id, hit.score]),
+  );
+  const topScore = similar[0] ? normalizeScore(similar[0].score) : 0.35;
   const resolvedActions = relatedActions.filter(
     (action) => action.outcome === "resolved",
   );
-  const recommendedNext = resolvedActions.map(
-    (action) =>
-      `Historical resolution on ${action.incidentId}: ${action.action}`,
+  let recommendations = buildResolutionRecommendations(
+    resolvedActions,
+    scoreByIncident,
+    topScore,
   );
 
   const actionSummary = await summarizeActions(incidentId);
@@ -238,12 +328,25 @@ export async function analyseIncident(incidentId: string): Promise<IncidentBrief
     baseSummary: summaryBits.join(" "),
   });
 
+  if (enriched.aiSuggestion) {
+    recommendations = [enriched.aiSuggestion, ...recommendations];
+  }
+
+  const confidence = deriveBriefConfidence({
+    similar,
+    freshnessOutdated,
+    distinctRootCauses: distinctRootCauses.size,
+    aiConfidence: enriched.confidence,
+  });
+
   return {
     incidentId,
     summary: enriched.summary,
     triedAlready,
     triedAlreadyStats,
-    recommendedNext,
+    recommendedNext: recommendations.map((item) => item.text),
+    recommendations,
+    confidence,
     evidenceIds,
     freshnessOutdated,
     freshnessNotes,
@@ -265,6 +368,8 @@ export async function analyseQuery(query: string): Promise<{
   triedAlready: string[];
   triedAlreadyStats: TriedAlreadyStat[];
   recommendedNext: string[];
+  recommendations: Recommendation[];
+  confidence: number;
   evidenceIds: string[];
   similar: IncidentBrief["similar"];
   aiSource: IncidentBrief["aiSource"];
@@ -315,12 +420,15 @@ export async function analyseQuery(query: string): Promise<{
     ...mapActionsToLines(relatedActions),
   ];
 
-  const recommendedNext = relatedActions
-    .filter((action) => action.outcome === "resolved")
-    .map(
-      (action) =>
-        `Historical resolution on ${action.incidentId}: ${action.action}`,
-    );
+  const scoreByIncident = new Map(
+    similar.map((hit) => [hit.incident._id, hit.score]),
+  );
+  const topScore = similar[0] ? normalizeScore(similar[0].score) : 0.35;
+  const recommendations = buildResolutionRecommendations(
+    relatedActions,
+    scoreByIncident,
+    topScore,
+  );
 
   const distinctRootCauses = new Set(
     similar
@@ -335,12 +443,19 @@ export async function analyseQuery(query: string): Promise<{
         ? `Matched ${similar.length} historical incident(s) with different root causes. Review evidence before assuming the current cause.`
         : `Matched ${similar.length} historical incident(s). Review failed/temporary actions before repeating them.`;
 
+  const confidence = deriveBriefConfidence({
+    similar,
+    distinctRootCauses: distinctRootCauses.size,
+  });
+
   return {
     query,
     summary,
     triedAlready,
     triedAlreadyStats,
-    recommendedNext,
+    recommendedNext: recommendations.map((item) => item.text),
+    recommendations,
+    confidence,
     evidenceIds,
     similar: similar.map((hit) => ({
       incidentId: hit.incident._id,

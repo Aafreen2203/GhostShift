@@ -1,19 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --gs-bg: #f5f7fb;
+  --gs-bg: #f4f7fb;
   --gs-bg-elevated: #ffffff;
   --gs-bg-panel: #ffffff;
   --gs-bg-soft: #eef2f7;
-  --gs-border: #e2e8f0;
-  --gs-border-strong: #cbd5e1;
+  --gs-border: #dce3ec;
+  --gs-border-strong: #c5d0de;
   --gs-text: #0f172a;
-  --gs-text-muted: #64748b;
-  --gs-cyan: #0891b2;
+  --gs-text-muted: #475569;
+  --gs-cyan: #06b6d4;
   --gs-violet: #7c3aed;
-  --gs-success: #16a34a;
-  --gs-warning: #d97706;
-  --gs-critical: #dc2626;
+  --gs-mongo: #00ed64;
+  --gs-mongo-ink: #047857;
+  --gs-success: #10b981;
+  --gs-warning: #f59e0b;
+  --gs-critical: #ef4444;
   --background: var(--gs-bg);
   --foreground: var(--gs-text);
 }
@@ -30,6 +32,8 @@
   --color-gs-muted: var(--gs-text-muted);
   --color-gs-cyan: var(--gs-cyan);
   --color-gs-violet: var(--gs-violet);
+  --color-gs-mongo: var(--gs-mongo);
+  --color-gs-mongo-ink: var(--gs-mongo-ink);
   --color-gs-success: var(--gs-success);
   --color-gs-warning: var(--gs-warning);
   --color-gs-critical: var(--gs-critical);
@@ -47,41 +51,55 @@ html {
 
 body {
   background:
-    radial-gradient(1100px 520px at 8% -8%, rgba(8, 145, 178, 0.08), transparent 55%),
-    radial-gradient(900px 480px at 92% 0%, rgba(124, 58, 237, 0.07), transparent 50%),
+    radial-gradient(1100px 520px at 8% -8%, rgba(6, 182, 212, 0.07), transparent 55%),
+    radial-gradient(900px 480px at 92% 0%, rgba(124, 58, 237, 0.05), transparent 50%),
     var(--gs-bg);
   color: var(--gs-text);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   min-height: 100%;
+  overflow-x: hidden;
 }
 
 ::selection {
-  background: rgba(8, 145, 178, 0.18);
+  background: rgba(6, 182, 212, 0.18);
 }
 
 .gs-panel {
   background: #ffffff;
   border: 1px solid var(--gs-border);
   border-radius: 0.75rem;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.045);
 }
 
 .gs-panel-ai {
-  border-color: rgba(8, 145, 178, 0.35);
+  border-color: rgba(6, 182, 212, 0.4);
   box-shadow:
-    0 0 0 1px rgba(124, 58, 237, 0.08),
+    0 0 0 1px rgba(124, 58, 237, 0.1),
     0 10px 28px rgba(15, 23, 42, 0.06);
 }
 
+.gs-panel-incident {
+  border-color: rgba(239, 68, 68, 0.45);
+  box-shadow:
+    inset 4px 0 0 0 rgba(239, 68, 68, 0.9),
+    0 0 24px rgba(239, 68, 68, 0.08),
+    0 10px 28px rgba(15, 23, 42, 0.06);
+}
+
+.gs-panel-mongo {
+  border-color: rgba(0, 237, 100, 0.35);
+  box-shadow: 0 8px 24px rgba(4, 120, 87, 0.05);
+}
+
 .gs-gradient-text {
-  background: linear-gradient(90deg, #0891b2, #7c3aed);
+  background: linear-gradient(90deg, #06b6d4, #7c3aed);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .gs-btn-primary {
-  background: linear-gradient(90deg, #0e7490, #7c3aed);
+  background: linear-gradient(90deg, #06b6d4, #7c3aed);
   color: white;
   border: 1px solid transparent;
   transition: filter 150ms ease, box-shadow 150ms ease;
@@ -89,14 +107,15 @@ body {
 
 .gs-btn-primary:hover {
   filter: brightness(1.05);
-  box-shadow: 0 8px 20px rgba(8, 145, 178, 0.22);
+  box-shadow: 0 8px 20px rgba(6, 182, 212, 0.28);
 }
 
 .gs-btn-primary:focus-visible,
 .gs-btn-ghost:focus-visible,
+.gs-btn-mongo:focus-visible,
 a:focus-visible,
 button:focus-visible {
-  outline: 2px solid rgba(8, 145, 178, 0.55);
+  outline: 2px solid rgba(6, 182, 212, 0.55);
   outline-offset: 2px;
 }
 
@@ -108,8 +127,20 @@ button:focus-visible {
 }
 
 .gs-btn-ghost:hover {
-  border-color: rgba(8, 145, 178, 0.45);
-  background: #f0f9ff;
+  border-color: rgba(6, 182, 212, 0.45);
+  background: #ecfeff;
+}
+
+.gs-btn-mongo {
+  background: rgba(0, 237, 100, 0.12);
+  border: 1px solid rgba(0, 237, 100, 0.45);
+  color: var(--gs-mongo-ink);
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.gs-btn-mongo:hover {
+  background: rgba(0, 237, 100, 0.18);
+  border-color: rgba(0, 237, 100, 0.65);
 }
 
 .gs-input {
@@ -123,9 +154,9 @@ button:focus-visible {
 }
 
 .gs-input:focus {
-  border-color: rgba(8, 145, 178, 0.55);
+  border-color: rgba(6, 182, 212, 0.55);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.12);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.12);
 }
 
 .gs-mono {
@@ -158,7 +189,7 @@ button:focus-visible {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(8, 145, 178, 0.1),
+    rgba(6, 182, 212, 0.12),
     transparent
   );
   transform: translateX(-100%);
@@ -186,8 +217,53 @@ button:focus-visible {
   }
 }
 
-/* Shared light-surface helpers used across components */
 .gs-inset {
   background: #f8fafc;
   border: 1px solid var(--gs-border);
+}
+
+.gs-nav-active {
+  border-left: 3px solid var(--gs-cyan);
+  background: rgba(6, 182, 212, 0.08);
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.gs-trace-pipeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.gs-trace-step {
+  border-radius: 999px;
+  border: 1px solid var(--gs-border);
+  background: #f8fafc;
+  padding: 0.25rem 0.65rem;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gs-text-muted);
+  transition: all 180ms ease;
+}
+
+.gs-trace-step[data-state="active"] {
+  border-color: rgba(6, 182, 212, 0.5);
+  background: linear-gradient(90deg, rgba(6, 182, 212, 0.15), rgba(124, 58, 237, 0.12));
+  color: #0f172a;
+}
+
+.gs-trace-step[data-state="done"] {
+  border-color: rgba(0, 237, 100, 0.4);
+  background: rgba(0, 237, 100, 0.1);
+  color: var(--gs-mongo-ink);
+}
+
+.gs-trace-step[data-kind="ai"][data-state="active"],
+.gs-trace-step[data-kind="ai"][data-state="done"] {
+  border-color: rgba(124, 58, 237, 0.4);
+  background: linear-gradient(90deg, rgba(6, 182, 212, 0.14), rgba(124, 58, 237, 0.14));
+  color: #5b21b6;
 }

@@ -26,15 +26,20 @@ function isLatencyMetric(metric?: string): boolean {
 }
 
 /**
- * Explicit demo rules:
- * 1) payment-api DB connections >= 96 opens/keeps an active saturation incident
- * 2) payment timeout / latency spike opens an incident when recent DB pressure >= 90
- * Never auto-remediates.
+ * Explicit demo rules (payment-api only for MVP):
+ * 1) DB connections >= 96 opens an active saturation incident
+ * 2) timeout / latency spike opens an incident when recent DB pressure >= 90
+ *
+ * Constraint: at most one active incident per service (not global).
+ * Never auto-remediates — human decides after GhostShift evidence brief.
  */
 export async function evaluateEvent(
   event: SystemEvent,
 ): Promise<EvaluateEventResult> {
-  if (event.serviceId !== "payment-api") {
+  const serviceId = event.serviceId;
+
+  // MVP: only payment-api has detection rules. Other services still store events.
+  if (serviceId !== "payment-api") {
     return {
       openedIncidentId: null,
       reason: "No detection rule for this service.",
@@ -43,17 +48,17 @@ export async function evaluateEvent(
 
   const incidents = await getCollection<Incident>(COLLECTIONS.incidents);
   const existing = await incidents.findOne({
-    serviceId: "payment-api",
+    serviceId,
     status: "active",
   });
   if (existing) {
     return {
       openedIncidentId: existing._id,
-      reason: `Active incident already open: ${existing._id}`,
+      reason: `Active incident already open for ${serviceId}: ${existing._id}`,
     };
   }
 
-  const recentPressure = await hasRecentDbPressure(event.serviceId, 90);
+  const recentPressure = await hasRecentDbPressure(serviceId, 90);
   const criticalPool =
     isDbConnectionMetric(event.metric) &&
     typeof event.value === "number" &&
@@ -73,7 +78,7 @@ export async function evaluateEvent(
   }
 
   const services = await getCollection<Service>(COLLECTIONS.services);
-  const service = await services.findOne({ _id: "payment-api" });
+  const service = await services.findOne({ _id: serviceId });
   const symptoms = [
     event.message,
     ...(recentPressure || criticalPool
@@ -86,7 +91,7 @@ export async function evaluateEvent(
 
   const draft: Incident = {
     _id: `inc-live-${randomUUID().slice(0, 8)}`,
-    serviceId: "payment-api",
+    serviceId,
     title: criticalPool
       ? "Live payment API database connection saturation"
       : "Live payment timeout under database pressure",
@@ -104,7 +109,7 @@ export async function evaluateEvent(
   draft.embedding = await embedText(incidentEmbeddingText(draft));
   await incidents.insertOne(draft);
   await services.updateOne(
-    { _id: "payment-api" },
+    { _id: serviceId },
     { $set: { status: "incident" } },
   );
 

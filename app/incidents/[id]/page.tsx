@@ -105,9 +105,13 @@ export default function IncidentDetailPage() {
 
   return (
     <main className="space-y-8">
-      <section className="gs-panel p-5">
+      <section
+        className={`gs-panel p-5 ${
+          incident.status === "active" ? "gs-panel-incident" : ""
+        }`}
+      >
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gs-muted">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
             {service?.name ?? incident.serviceId} /{" "}
             {incident.status === "active" ? "Live Incident" : "Historical Memory"}
           </p>
@@ -168,10 +172,14 @@ export default function IncidentDetailPage() {
               href={`/search?q=${encodeURIComponent(
                 `${incident.title}. ${incident.symptoms.join(". ")}`,
               )}`}
-              className="gs-btn-primary mt-5 inline-flex rounded-md px-4 py-2.5 text-sm font-medium"
+              className="gs-btn-primary mt-5 inline-flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium"
             >
               Investigate with GhostShift
             </Link>
+            <p className="mt-2 text-xs text-slate-600">
+              Runs embedding → MongoDB Vector Search → aggregation → AI evidence
+              brief
+            </p>
           </div>
         ) : null}
       </section>

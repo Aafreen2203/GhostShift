@@ -6,7 +6,9 @@ import { Ghost, Sparkles, Zap } from "lucide-react";
 import { MongoBadge, MongoCaption } from "@/components/mongo/MongoBadge";
 import { MongoMemoryEngine } from "@/components/mongo/MongoMemoryEngine";
 import { MongoTracePanel } from "@/components/mongo/MongoTracePanel";
+import { SearchEngineBadge } from "@/components/mongo/SearchEngineBadge";
 import type { MongoTraceData } from "@/components/mongo/types";
+import { searchEngineLabel } from "@/lib/search-labels";
 
 type TriedAlreadyStat = {
   action: string;
@@ -146,13 +148,10 @@ export function AgentBrief({ incidentId }: { incidentId?: string }) {
                 GhostShift Memory
               </h2>
             </div>
-            <MongoBadge kind="vector" />
+            <SearchEngineBadge source={topMatch.source} />
           </div>
           <MongoCaption>
-            Retrieved via MongoDB{" "}
-            {topMatch.source === "atlas_vector_search"
-              ? "Atlas Vector Search"
-              : "embedding similarity"}
+            Retrieved via {searchEngineLabel(topMatch.source)}
           </MongoCaption>
           <p className="mt-2 text-sm text-slate-600">
             Similar historical incident detected

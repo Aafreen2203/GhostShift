@@ -6,6 +6,33 @@ import type { SystemEvent, SystemEventSeverity, SystemEventType } from "@/types/
 
 export const runtime = "nodejs";
 
+export async function GET(request: Request) {
+  try {
+    const url = new URL(request.url);
+    const serviceId = url.searchParams.get("serviceId");
+    const rawLimit = Number(url.searchParams.get("limit") ?? "30");
+    const limit = Number.isFinite(rawLimit)
+      ? Math.min(Math.max(Math.trunc(rawLimit), 1), 100)
+      : 30;
+
+    const filter =
+      serviceId && serviceId.trim() !== ""
+        ? { serviceId: serviceId.trim() }
+        : {};
+
+    const collection = await getCollection<SystemEvent>(COLLECTIONS.events);
+    const events = await collection
+      .find(filter)
+      .sort({ timestamp: -1 })
+      .limit(limit)
+      .toArray();
+
+    return Response.json(events);
+  } catch (error) {
+    return serverError("GET /api/events", error, "Failed to load events");
+  }
+}
+
 const EVENT_TYPES: readonly SystemEventType[] = [
   "metric",
   "error",

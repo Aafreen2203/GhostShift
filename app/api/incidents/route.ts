@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { embedText, incidentEmbeddingText } from "@/lib/embeddings";
+import { embedText, EMBEDDING_DIMENSIONS, incidentEmbeddingText } from "@/lib/embeddings";
 import { COLLECTIONS, getCollection } from "@/lib/mongodb";
 import { jsonError, serverError } from "@/lib/http";
+import type { IncidentAction } from "@/types/action";
 import type { Incident, IncidentSeverity, IncidentStatus } from "@/types/incident";
 
 export const runtime = "nodejs";
@@ -95,11 +96,40 @@ export async function POST(request: Request) {
       createdAt: now,
       resolvedAt: now,
     };
+    // Close the memory loop: verified resolution → document → embedding → searchable.
     incident.embedding = await embedText(incidentEmbeddingText(incident));
 
     const collection = await getCollection<Incident>(COLLECTIONS.incidents);
     await collection.insertOne(incident);
-    return Response.json(incident, { status: 201 });
+
+    const action: IncidentAction = {
+      _id: `ACT-REC-${randomUUID().slice(0, 8)}`,
+      incidentId: incident._id,
+      serviceId,
+      action: rootCause
+        ? `Applied verified fix for: ${rootCause}`
+        : "Applied verified resolution",
+      result: resolution,
+      outcome: "resolved",
+      successful: true,
+      timestamp: now,
+    };
+    const actions = await getCollection<IncidentAction>(COLLECTIONS.actions);
+    await actions.insertOne(action);
+
+    return Response.json(
+      {
+        ...incident,
+        memory: {
+          searchable: true,
+          embeddingDimensions: EMBEDDING_DIMENSIONS,
+          embeddingPath: "embedding",
+          actionId: action._id,
+          note: "Saved to MongoDB semantic memory — available to Vector Search next time.",
+        },
+      },
+      { status: 201 },
+    );
   } catch (error) {
     return serverError("POST /api/incidents", error, "Failed to create incident");
   }

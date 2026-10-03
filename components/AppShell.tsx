@@ -13,6 +13,9 @@ import {
   Server,
   X,
 } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
+import { MongoActivityStrip } from "@/components/mongo/MongoActivityStrip";
+import type { Incident } from "@/types/incident";
 import type { Service } from "@/types/service";
 
 const nav = [
@@ -39,19 +42,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mongoOk, setMongoOk] = useState<boolean | null>(null);
   const [services, setServices] = useState<Service[]>([]);
+  const [historicalCount, setHistoricalCount] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
-        const [healthRes, servicesRes] = await Promise.all([
+        const [healthRes, servicesRes, incidentsRes] = await Promise.all([
           fetch("/api/health"),
           fetch("/api/services"),
+          fetch("/api/incidents?status=resolved"),
         ]);
         if (!cancelled) {
           setMongoOk(healthRes.ok);
-          const body = (await servicesRes.json()) as Service[] | { error?: string };
-          if (Array.isArray(body)) setServices(body);
+          const servicesBody = (await servicesRes.json()) as
+            | Service[]
+            | { error?: string };
+          if (Array.isArray(servicesBody)) setServices(servicesBody);
+          const incidentsBody = (await incidentsRes.json()) as
+            | Incident[]
+            | { error?: string };
+          if (Array.isArray(incidentsBody)) {
+            setHistoricalCount(incidentsBody.length);
+          }
         }
       } catch {
         if (!cancelled) setMongoOk(false);
@@ -70,7 +83,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   if (isHome) {
-    return <div className="min-h-full">{children}</div>;
+    return <div className="relative z-10 min-h-full">{children}</div>;
   }
 
   const statusDot = (status: Service["status"]) => {
@@ -81,20 +94,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const sidebar = (
     <div className="flex h-full flex-col">
-      <Link href="/" className="flex items-center gap-2 px-4 py-5">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-gs-cyan to-gs-violet text-sm">
-          <Ghost className="h-4 w-4 text-white" />
-        </span>
-        <div>
-          <p className="text-sm font-semibold tracking-[0.18em] gs-gradient-text">
-            GHOSTSHIFT
-          </p>
-          <p className="text-[10px] uppercase tracking-wider text-gs-muted">
-            Memory agent
-          </p>
-        </div>
+      <Link href="/" className="block px-3 py-4" aria-label="GhostShift home">
+        <BrandLogo variant="sidebar" priority />
       </Link>
 
+      <div className="px-4 pb-2">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+          Navigation
+        </p>
+      </div>
       <nav className="space-y-1 px-3">
         {nav.map(({ href, label, icon: Icon }) => {
           const active =
@@ -103,53 +111,55 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm transition ${
+              className={`flex items-center gap-2 rounded-r-md px-3 py-2 text-sm transition ${
                 active
-                  ? "border border-cyan-600/30 bg-cyan-50 text-slate-900"
-                  : "text-gs-muted hover:bg-slate-100 hover:text-slate-900"
+                  ? "gs-nav-active"
+                  : "border-l-[3px] border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900"
               }`}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className={`h-4 w-4 ${active ? "text-gs-cyan" : ""}`} />
               {label}
             </Link>
           );
         })}
       </nav>
 
-      <div className="mt-6 px-4">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gs-muted">
+      <div className="mx-4 mt-6 border-t border-gs-border pt-5">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
           Systems
         </p>
         <ul className="mt-3 space-y-2">
           {services.map((service) => (
             <li key={service._id} className="flex items-center gap-2 text-xs">
-              <span className={`h-1.5 w-1.5 rounded-full ${statusDot(service.status)}`} />
-              <span className="gs-mono text-slate-700">{service.name}</span>
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${statusDot(service.status)}`}
+              />
+              <span className="gs-mono text-slate-800">{service.name}</span>
             </li>
           ))}
           {services.length === 0 ? (
-            <li className="text-xs text-gs-muted">No services loaded</li>
+            <li className="text-xs text-slate-500">No services loaded</li>
           ) : null}
         </ul>
       </div>
 
       <div className="mt-auto space-y-3 border-t border-gs-border px-4 py-4">
         <div className="flex items-center gap-2 text-xs">
-          <Database className="h-3.5 w-3.5 text-gs-cyan" />
+          <Database className="h-3.5 w-3.5 text-gs-mongo-ink" />
           <span
             className={`h-1.5 w-1.5 rounded-full ${
               mongoOk === null
-                ? "bg-gs-muted"
+                ? "bg-slate-400"
                 : mongoOk
-                  ? "bg-gs-success"
+                  ? "bg-gs-mongo"
                   : "bg-gs-critical"
             }`}
           />
-          <span className="text-gs-muted">
+          <span className="text-slate-600">
             MongoDB {mongoOk === null ? "…" : mongoOk ? "Connected" : "Offline"}
           </span>
         </div>
-        <p className="text-[10px] uppercase tracking-wider text-gs-muted">
+        <p className="text-[10px] uppercase tracking-wider text-slate-500">
           Synthetic Demo Environment
         </p>
       </div>
@@ -157,8 +167,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="flex min-h-full">
-      <aside className="hidden w-64 shrink-0 border-r border-gs-border bg-gs-elevated/90 lg:block">
+    <div className="relative z-10 flex min-h-full">
+      <aside className="relative z-20 hidden w-64 shrink-0 border-r border-gs-border bg-white lg:block">
         {sidebar}
       </aside>
 
@@ -170,12 +180,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             aria-label="Close menu"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="absolute left-0 top-0 h-full w-72 border-r border-gs-border bg-gs-elevated">
+          <aside className="absolute left-0 top-0 h-full w-72 border-r border-gs-border bg-white">
             <div className="flex justify-end p-3">
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-md p-2 text-gs-muted hover:bg-slate-100"
+                className="rounded-md p-2 text-slate-500 hover:bg-slate-100"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -186,44 +196,51 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-gs-border bg-white/90 backdrop-blur">
-          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <header className="sticky top-0 z-30 border-b border-gs-border bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                className="rounded-md border border-gs-border p-2 text-gs-muted lg:hidden"
+                className="rounded-md border border-gs-border p-2 text-slate-600 lg:hidden"
                 onClick={() => setMobileOpen(true)}
                 aria-label="Open menu"
               >
                 <Menu className="h-4 w-4" />
               </button>
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-gs-muted">
-                  GhostShift
-                </p>
-                <h1 className="text-sm font-semibold text-slate-900">
-                  {pageTitle(pathname)}
-                </h1>
+              <div className="flex items-center gap-3">
+                <BrandLogo variant="header" className="hidden sm:block lg:hidden" />
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                    GhostShift
+                  </p>
+                  <h1 className="text-sm font-semibold text-slate-900">
+                    {pageTitle(pathname)}
+                  </h1>
+                </div>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-[11px]">
               <span className="rounded-full border border-gs-border bg-gs-soft px-2.5 py-1 gs-mono text-gs-cyan">
                 DEMO
               </span>
-              <span className="rounded-full border border-gs-border bg-gs-soft px-2.5 py-1 text-slate-700">
+              <span className="rounded-full border border-emerald-500/30 bg-emerald-50 px-2.5 py-1 text-gs-mongo-ink">
                 <span
                   className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${
-                    mongoOk ? "bg-gs-success" : "bg-gs-critical"
+                    mongoOk ? "bg-gs-mongo" : "bg-gs-critical"
                   }`}
                 />
                 MongoDB {mongoOk ? "Connected" : "Checking"}
               </span>
-              <span className="rounded-full border border-cyan-600/25 bg-cyan-50 px-2.5 py-1 text-cyan-800">
+              <span className="rounded-full border border-cyan-500/30 bg-cyan-50 px-2.5 py-1 text-cyan-800">
                 <span className="gs-pulse mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-gs-cyan" />
                 AI Memory Online
               </span>
             </div>
           </div>
+          <MongoActivityStrip
+            mongoOk={mongoOk}
+            historicalCount={historicalCount}
+          />
         </header>
         <div className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</div>
       </div>

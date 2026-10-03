@@ -7,7 +7,9 @@ import { SimilarIncidentCard } from "@/components/SimilarIncidentCard";
 import { MongoBadge, MongoCaption } from "@/components/mongo/MongoBadge";
 import { MongoMemoryEngine } from "@/components/mongo/MongoMemoryEngine";
 import { MongoTracePanel } from "@/components/mongo/MongoTracePanel";
+import { SearchEngineBadge } from "@/components/mongo/SearchEngineBadge";
 import type { MongoTraceData } from "@/components/mongo/types";
+import { searchEngineDetail } from "@/lib/search-labels";
 import type { Incident } from "@/types/incident";
 
 type SearchMatch = {
@@ -79,12 +81,7 @@ export function SearchClient() {
       const nextMatches = body.matches ?? [];
       setMatches(nextMatches);
       setBrief(body.brief ?? null);
-      const sources = new Set(nextMatches.map((match) => match.source));
-      setSourceNote(
-        sources.has("atlas_vector_search")
-          ? "Retrieved via MongoDB Atlas Vector Search."
-          : "Ranked with cosine similarity over stored embeddings (Atlas Vector Search index unavailable or empty).",
-      );
+      setSourceNote(searchEngineDetail(nextMatches[0]?.source));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Search failed");
     } finally {
@@ -189,17 +186,17 @@ export function SearchClient() {
       ) : null}
 
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
-      {sourceNote ? (
+      {hasSearched && !loading ? (
         <div className="flex flex-wrap items-center gap-2">
-          <MongoBadge kind="vector" />
-          <MongoCaption>{sourceNote}</MongoCaption>
+          <SearchEngineBadge source={matches[0]?.source} />
+          {sourceNote ? <MongoCaption>{sourceNote}</MongoCaption> : null}
           {matches.length > 0 ? (
             <button
               type="button"
               onClick={() => setTraceOpen(true)}
-              className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-[11px] text-emerald-800"
+              className="gs-btn-mongo rounded-md px-3 py-1.5 text-[11px] font-medium"
             >
-              View MongoDB Trace
+              View Memory Trace
             </button>
           ) : null}
         </div>

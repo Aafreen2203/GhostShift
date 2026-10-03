@@ -15,12 +15,15 @@ export default function RecordPage() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedId, setSavedId] = useState<string | null>(null);
+  const [memoryNote, setMemoryNote] = useState<string | null>(null);
+  const [proveQuery, setProveQuery] = useState("");
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
     setPending(true);
     setError(null);
     setSavedId(null);
+    setMemoryNote(null);
 
     const enrichedSummary = [
       summary,
@@ -44,11 +47,24 @@ export default function RecordPage() {
           symptoms: summary ? [summary] : [],
         }),
       });
-      const body = (await response.json()) as { _id?: string; error?: string };
+      const body = (await response.json()) as {
+        _id?: string;
+        error?: string;
+        memory?: {
+          searchable?: boolean;
+          embeddingDimensions?: number;
+          note?: string;
+        };
+      };
       if (!response.ok || !body._id) {
         throw new Error(body.error ?? "Failed to save incident");
       }
       setSavedId(body._id);
+      setProveQuery([title, summary, rootCause, resolution].filter(Boolean).join(". "));
+      setMemoryNote(
+        body.memory?.note ??
+          `Embedded as ${body.memory?.embeddingDimensions ?? 384}-d vector — searchable next time.`,
+      );
       setTitle("");
       setSummary("");
       setResolution("");
@@ -228,15 +244,30 @@ export default function RecordPage() {
         </button>
       </form>
 
-      {error ? <p className="text-sm text-red-300">{error}</p> : null}
+      {error ? <p className="text-sm text-red-700">{error}</p> : null}
       {savedId ? (
-        <p className="text-sm text-emerald-300">
-          Saved as{" "}
-          <Link href={`/incidents/${savedId}`} className="gs-mono underline">
-            {savedId}
+        <div className="gs-panel gs-panel-mongo space-y-2 p-4 text-sm">
+          <p className="font-medium text-gs-mongo-ink">
+            Saved to GhostShift Memory as{" "}
+            <Link href={`/incidents/${savedId}`} className="gs-mono underline">
+              {savedId}
+            </Link>
+          </p>
+          <p className="text-slate-700">
+            {memoryNote ??
+              "Verified resolution embedded and indexed for semantic search."}
+          </p>
+          <p className="text-xs text-slate-600">
+            Loop complete: resolution → MongoDB document → 384-d embedding →
+            searchable next investigation.
+          </p>
+          <Link
+            href={`/search?q=${encodeURIComponent(proveQuery || "payment timeout connection pool")}`}
+            className="gs-btn-primary inline-flex rounded-md px-3 py-2 text-xs font-medium"
+          >
+            Prove it — Search Memory
           </Link>
-          . This record can now be retrieved by Vector Search.
-        </p>
+        </div>
       ) : null}
     </main>
   );

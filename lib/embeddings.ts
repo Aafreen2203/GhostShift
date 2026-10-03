@@ -1,8 +1,13 @@
 /**
+ * Semantic Memory — 384-dimensional incident embeddings.
+ *
  * Deterministic local embeddings for the hackathon demo.
  * Same text always produces the same vector. No external AI API required.
- * Seeded incidents and live queries use this same function so cosine ranking
- * is meaningful across the synthetic dataset.
+ *
+ * CRITICAL: Atlas Vector Search index must use the same contract:
+ *   path: embedding · numDimensions: 384 · similarity: cosine
+ * Seed, Record, live incidents, and query search all call embedText() so
+ * stored vectors and query vectors use the exact same method.
  */
 
 export const EMBEDDING_DIMENSIONS = 384;

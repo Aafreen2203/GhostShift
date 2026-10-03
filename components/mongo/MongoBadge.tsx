@@ -22,7 +22,7 @@ export function MongoBadge({
 }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border border-emerald-500/35 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium tracking-wide text-emerald-700 ${className}`}
+      className={`inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium tracking-wide text-gs-mongo-ink ${className}`}
     >
       {labels[kind]}
     </span>
@@ -31,7 +31,7 @@ export function MongoBadge({
 
 export function MongoCaption({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[10px] uppercase tracking-wider text-emerald-700/80">
+    <p className="text-[10px] uppercase tracking-wider text-gs-mongo-ink/90">
       {children}
     </p>
   );

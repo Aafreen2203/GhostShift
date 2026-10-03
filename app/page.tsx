@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowDown, Ghost, Search, LayoutDashboard } from "lucide-react";
+import { ArrowDown, Search, LayoutDashboard } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const flow = [
   "CURRENT INCIDENT",
@@ -15,21 +16,15 @@ export default function Home() {
     <main className="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-4 py-12 sm:px-8">
       <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         <section>
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-800">
-            <Ghost className="h-3.5 w-3.5" />
-            AI institutional memory
-          </div>
-          <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl">
-            <span className="gs-gradient-text">GHOSTSHIFT</span>
-          </h1>
-          <p className="mt-4 text-xl text-slate-700">
+          <BrandLogo variant="hero" priority className="mb-6" />
+          <p className="mt-2 text-xl text-slate-700">
             Institutional memory for engineering teams.
           </p>
           <p className="mt-4 max-w-xl text-base leading-7 text-gs-muted">
             When people leave, their technical knowledge shouldn&apos;t leave with
             them.
           </p>
-          <p className="mt-4 max-w-xl text-sm leading-6 text-slate-400">
+          <p className="mt-4 max-w-xl text-sm leading-6 text-slate-500">
             Retrieve similar failures, previous troubleshooting attempts, temporary
             fixes, and verified resolutions — powered by MongoDB Vector Search and
             evidence-grounded AI.

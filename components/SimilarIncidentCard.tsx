@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { MongoBadge, MongoCaption } from "@/components/mongo/MongoBadge";
+import { SearchEngineBadge } from "@/components/mongo/SearchEngineBadge";
+import { searchEngineLabel } from "@/lib/search-labels";
 import type { Incident } from "@/types/incident";
 
 export function SimilarIncidentCard({
@@ -19,16 +21,11 @@ export function SimilarIncidentCard({
   return (
     <article className="gs-panel p-4 transition hover:border-cyan-400/35">
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <MongoBadge kind="vector" />
+        <SearchEngineBadge source={source} />
         <MongoBadge kind="document" />
       </div>
       <MongoCaption>
-        Retrieved via MongoDB{" "}
-        {source === "atlas_vector_search"
-          ? "Atlas Vector Search"
-          : source === "cosine_fallback"
-            ? "embedding similarity"
-            : "Vector Search"}
+        Retrieved via {searchEngineLabel(source)}
       </MongoCaption>
       <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
         <div>
