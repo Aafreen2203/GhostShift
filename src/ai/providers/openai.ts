@@ -1,6 +1,6 @@
 import OpenAI from "openai";
-import { AIConfigurationError, AIResponseError } from "../types/errors.js";
-import type { LLMProvider } from "./types.js";
+import { AIConfigurationError, AIResponseError } from "../types/errors";
+import type { LLMProvider } from "./types";
 
 function jsonSchemaName(schema: unknown): string {
   if (schema && typeof schema === "object" && "name" in schema) {

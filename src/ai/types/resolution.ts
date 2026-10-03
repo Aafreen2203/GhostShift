@@ -1,4 +1,4 @@
-import type { Evidence } from "./evidence.js";
+import type { Evidence } from "./evidence";
 
 export interface ResolutionActionInput {
   action: string;

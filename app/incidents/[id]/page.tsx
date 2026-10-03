@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { ActionHistory } from "@/components/ActionHistory";
 import { AgentBrief } from "@/components/AgentBrief";
 import { IncidentTimeline } from "@/components/IncidentTimeline";
+import { KnowledgeFreshness } from "@/components/KnowledgeFreshness";
 import type { IncidentAction } from "@/types/action";
 import type { Incident } from "@/types/incident";
 import type { Service } from "@/types/service";
@@ -79,6 +80,35 @@ export default function IncidentDetailPage() {
         <p className="text-sm text-slate-500">{serviceName}</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">{incident.title}</h1>
         <p className="mt-2 text-sm text-slate-700">{incident.summary}</p>
+        <div className="mt-3 flex flex-wrap gap-2 text-sm">
+          <span className="rounded-full bg-slate-200 px-2 py-0.5 capitalize">
+            {incident.status}
+          </span>
+          <span className="rounded-full bg-slate-200 px-2 py-0.5 capitalize">
+            {incident.severity}
+          </span>
+          {incident.status === "active" ? (
+            <a
+              href={`/search?q=${encodeURIComponent(
+                `${incident.title}. ${incident.symptoms.join(". ")}`,
+              )}`}
+              className="rounded-md bg-slate-900 px-3 py-1 text-white"
+            >
+              Investigate with GhostShift
+            </a>
+          ) : null}
+        </div>
+        {incident.rootCause ? (
+          <p className="mt-3 text-sm">
+            <span className="font-medium">Historical root cause: </span>
+            {incident.rootCause}
+          </p>
+        ) : (
+          <p className="mt-3 text-sm text-slate-600">
+            Current incident — historical root cause is retrieved from similar memory,
+            not assumed.
+          </p>
+        )}
       </div>
 
       <section>
@@ -104,6 +134,8 @@ export default function IncidentDetailPage() {
           <p className="mt-2 text-sm">{incident.resolution ?? "Not recorded."}</p>
         </div>
       </section>
+
+      <KnowledgeFreshness incidentId={incident._id} />
 
       <AgentBrief incidentId={incident._id} />
 

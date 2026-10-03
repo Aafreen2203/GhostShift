@@ -14,10 +14,9 @@ export default function Home() {
         When people leave, their technical knowledge shouldn&apos;t leave with them.
       </p>
       <p className="mt-4 text-sm leading-6 text-slate-600">
-        GhostShift keeps a record of system failures, troubleshooting attempts,
-        failed fixes, and the resolutions that actually worked. This foundation
-        stores that memory in MongoDB. Search, incident analysis, and live
-        change streams are left for the team to build.
+        GhostShift stores incident history in MongoDB, retrieves similar failures with
+        Vector Search, explains what was tried before, warns when systems changed, and
+        helps engineers decide — without claiming a definite current root cause.
       </p>
       <div className="mt-8 flex flex-wrap gap-3">
         <Link
@@ -27,16 +26,16 @@ export default function Home() {
           Open Dashboard
         </Link>
         <Link
-          href="/search"
-          className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm"
-        >
-          Search Memory
-        </Link>
-        <Link
           href="/simulator"
           className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm"
         >
           Incident Simulator
+        </Link>
+        <Link
+          href="/search"
+          className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm"
+        >
+          Search Memory
         </Link>
       </div>
     </main>

@@ -1,4 +1,4 @@
-import type { SystemStateDifference, CurrentIncident, HistoricalIncident, SystemState } from "../types/incident.js";
+import type { SystemStateDifference, CurrentIncident, HistoricalIncident, SystemState } from "../types/incident";
 
 const NUMERIC_FIELDS: Array<{ key: keyof SystemState; label: string }> = [
   { key: "cpuUsage", label: "CPU usage" },

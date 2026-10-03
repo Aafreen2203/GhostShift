@@ -1,133 +1,222 @@
 [
   {
-    "_id": "inc-pay-timeouts",
+    "_id": "INC-001",
     "serviceId": "payment-api",
-    "title": "Intermittent payment timeouts",
-    "summary": "Checkout requests timed out in bursts while the Payment API waited on saturated database connections.",
+    "title": "Intermittent payment timeouts during peak traffic",
+    "summary": "During afternoon checkout peaks, payment requests began timing out in bursts while database connection utilisation climbed toward the pool limit.",
     "symptoms": [
-      "intermittent payment timeout",
-      "high latency",
-      "database connection saturation"
+      "payment requests intermittently time out",
+      "API latency increases",
+      "database connection utilisation approaches capacity",
+      "failures become more frequent during high traffic"
     ],
-    "rootCause": "Database connection pool exhaustion.",
-    "resolution": "Increased the database connection pool max from 20 to 100 and restarted Payment API after the config change.",
+    "rootCause": "Database connection pool exhaustion during peak traffic.",
+    "resolution": "Connection pool capacity was increased and pool configuration was corrected.",
     "status": "resolved",
     "severity": "high",
     "historicalConfig": {
-      "database": "payments-prod-v2",
+      "database": "payments-primary",
       "connectionPoolMax": 20,
-      "timeoutMs": 8000
+      "timeoutMs": 8000,
+      "provider": "fictional-pay",
+      "workerReplicas": 3
     },
     "createdAt": "2026-01-14T09:12:00.000Z",
     "resolvedAt": "2026-01-14T11:40:00.000Z"
   },
   {
-    "_id": "inc-pay-expired-credentials",
+    "_id": "INC-002",
     "serviceId": "payment-api",
-    "title": "Payment failures caused by expired external API credentials",
-    "summary": "Payment authorization calls started failing after the fictional-pay API key passed its expiry date.",
+    "title": "Sporadic checkout delays while authorisation waits on the provider",
+    "summary": "Customers saw slow checkouts and occasional payment failures even though internal database metrics stayed within normal ranges.",
     "symptoms": [
-      "payment authorization failures",
-      "401 responses from the payment provider",
-      "spike in declined checkouts"
+      "payment requests slow",
+      "intermittent payment failures",
+      "elevated latency",
+      "some requests time out"
     ],
-    "rootCause": "External payment-provider API credentials had expired.",
-    "resolution": "Rotated the fictional-pay API key and updated the Payment API credential reference.",
-    "status": "resolved",
-    "severity": "critical",
-    "historicalConfig": {
-      "provider": "fictional-pay",
-      "credentialId": "fp-key-2025-q3",
-      "credentialExpiresAt": "2026-02-01"
-    },
-    "createdAt": "2026-02-02T16:05:00.000Z",
-    "resolvedAt": "2026-02-02T17:18:00.000Z"
-  },
-  {
-    "_id": "inc-pay-provider-latency",
-    "serviceId": "payment-api",
-    "title": "Payment latency caused by third-party payment-provider degradation",
-    "summary": "Checkout latency followed a degradation on the primary payment provider while database metrics stayed normal.",
-    "symptoms": [
-      "elevated checkout latency",
-      "payment provider status incident",
-      "normal database connection usage"
-    ],
-    "rootCause": "Third-party payment-provider degradation.",
-    "resolution": "Failed over to the backup payment provider and left the circuit breaker open until the primary provider recovered.",
+    "rootCause": "Third-party payment provider degradation.",
+    "resolution": "Fallback provider routing was activated until the primary fictional-pay region recovered.",
     "status": "resolved",
     "severity": "medium",
     "historicalConfig": {
+      "database": "payments-prod-v2",
+      "connectionPoolMax": 100,
       "provider": "fictional-pay",
       "backupProvider": "none",
-      "circuitBreaker": false
+      "timeoutMs": 3000
     },
     "createdAt": "2026-03-19T13:22:00.000Z",
     "resolvedAt": "2026-03-19T15:05:00.000Z"
   },
   {
-    "_id": "inc-auth-cert-rotation",
-    "serviceId": "auth-service",
-    "title": "Login failures after certificate rotation",
-    "summary": "Clients could not complete TLS handshakes after a certificate rotation because the service still trusted the previous certificate.",
+    "_id": "INC-003",
+    "serviceId": "payment-api",
+    "title": "Immediate payment rejections after credential expiry",
+    "summary": "Authorisation calls started failing instantly with provider authentication errors after an external API key passed its expiry date.",
     "symptoms": [
-      "TLS handshake errors",
-      "login HTTP 500 responses",
-      "mobile clients unable to refresh tokens"
+      "payment failures",
+      "authentication errors from external payment provider",
+      "increased HTTP 401/403 responses",
+      "transactions rejected immediately"
     ],
-    "rootCause": "The trust store still referenced the previous TLS certificate after rotation.",
-    "resolution": "Published the new certificate fingerprint and rolled the Authentication Service.",
+    "rootCause": "Expired external payment-provider API credential.",
+    "resolution": "Rotated the fictional-pay API credential and updated the Payment API secret reference.",
+    "status": "resolved",
+    "severity": "critical",
+    "historicalConfig": {
+      "provider": "fictional-pay",
+      "credentialId": "fp-key-2025-q3",
+      "credentialExpiresAt": "2026-02-01",
+      "database": "payments-prod-v2",
+      "connectionPoolMax": 100
+    },
+    "createdAt": "2026-02-02T16:05:00.000Z",
+    "resolvedAt": "2026-02-02T17:18:00.000Z"
+  },
+  {
+    "_id": "INC-004",
+    "serviceId": "payment-api",
+    "title": "Accepted payments stuck behind a growing processing backlog",
+    "summary": "Checkout accepted customer payments, but settlement lagged as the background processing queue grew and worker throughput dropped.",
+    "symptoms": [
+      "payment requests accepted but delayed",
+      "processing backlog increasing",
+      "worker throughput reduced",
+      "customer receipts arrive minutes late"
+    ],
+    "rootCause": "Background payment-processing queue saturation caused by too few workers.",
+    "resolution": "Increased payment worker replicas and restored the queue concurrency settings.",
     "status": "resolved",
     "severity": "high",
     "historicalConfig": {
-      "tlsCertFingerprint": "demo-cert-2025",
-      "tokenTtlMinutes": 60
+      "queueName": "payment-processing",
+      "workerReplicas": 2,
+      "connectionPoolMax": 100,
+      "database": "payments-prod-v2"
+    },
+    "createdAt": "2026-05-08T10:20:00.000Z",
+    "resolvedAt": "2026-05-08T12:05:00.000Z"
+  },
+  {
+    "_id": "INC-005",
+    "serviceId": "auth-service",
+    "title": "Login latency from exhausted session-store connections",
+    "summary": "Login and token refresh slowed sharply while session lookups waited on an exhausted Redis connection pool.",
+    "symptoms": [
+      "login requests slow",
+      "intermittent authentication failures",
+      "session lookups timing out",
+      "healthy application CPU"
+    ],
+    "rootCause": "Redis/session-store connection exhaustion.",
+    "resolution": "Raised the Redis pool maximum and recycled the Authentication Service pods after the config change.",
+    "status": "resolved",
+    "severity": "high",
+    "historicalConfig": {
+      "sessionStore": "redis-sessions-v2",
+      "redisPoolMax": 10,
+      "tokenTtlMinutes": 60,
+      "signingKeyId": "auth-signing-2026-a"
     },
     "createdAt": "2026-04-03T08:10:00.000Z",
-    "resolvedAt": "2026-04-03T09:02:00.000Z"
+    "resolvedAt": "2026-04-03T09:35:00.000Z"
   },
   {
-    "_id": "inc-auth-session-latency",
+    "_id": "INC-006",
     "serviceId": "auth-service",
-    "title": "Session validation latency spike",
-    "summary": "Session lookups slowed sharply even though CPU and error rates stayed flat.",
+    "title": "Sudden token validation failures after signing key expiry",
+    "summary": "Users were unable to complete authentication because issued tokens failed validation after the signing certificate expired.",
     "symptoms": [
-      "slow login",
-      "session lookup p95 above 2 seconds",
-      "healthy CPU"
+      "users suddenly unable to authenticate",
+      "token validation failures",
+      "authentication responses rejected",
+      "mobile clients cannot refresh sessions"
     ],
-    "rootCause": "The sessions collection had no index on userId.",
-    "resolution": "Added an index on sessions.userId and confirmed lookup latency returned to baseline.",
+    "rootCause": "Expired signing certificate used for JWT validation.",
+    "resolution": "Rotated the signing credentials and published the new signing key id.",
     "status": "resolved",
-    "severity": "medium",
+    "severity": "critical",
     "historicalConfig": {
-      "sessionStore": "mongo",
-      "sessionsIndexed": false
+      "signingKeyId": "auth-signing-2025-z",
+      "certificateExpiresAt": "2026-04-10",
+      "sessionStore": "redis-sessions-v3",
+      "redisPoolMax": 50
     },
-    "createdAt": "2026-05-11T18:44:00.000Z",
-    "resolvedAt": "2026-05-11T19:30:00.000Z"
+    "createdAt": "2026-04-11T07:40:00.000Z",
+    "resolvedAt": "2026-04-11T08:55:00.000Z"
   },
   {
-    "_id": "inc-notify-queue-backlog",
-    "serviceId": "notification-service",
-    "title": "Email delivery backlog after queue misconfiguration",
-    "summary": "Notification emails queued up after a deploy left workers idle and dead-letter routing disabled.",
+    "_id": "INC-007",
+    "serviceId": "auth-service",
+    "title": "Authentication error spike immediately after deployment",
+    "summary": "A configuration regression in a canary release broke login for traffic pinned to the new pods while the previous revision continued to work.",
     "symptoms": [
-      "delayed notification emails",
-      "growing queue depth",
-      "idle notification workers"
+      "failures begin immediately after deployment",
+      "login works for some pods but not others",
+      "elevated authentication error rate",
+      "canary revision returns configuration errors"
     ],
-    "rootCause": "Queue prefetch was set to 1 and dead-letter routing was disabled after a config deploy.",
-    "resolution": "Restored worker prefetch to 20 and re-enabled dead-letter routing.",
+    "rootCause": "Incorrect AUTH_SESSION_URL environment variable in the canary deployment.",
+    "resolution": "Rolled back the canary and restored the correct session-store endpoint configuration.",
+    "status": "resolved",
+    "severity": "high",
+    "historicalConfig": {
+      "deployedImage": "auth-service:1.18.0",
+      "sessionStore": "redis-sessions-v3-wrong-host",
+      "redisPoolMax": 50,
+      "tokenTtlMinutes": 30
+    },
+    "createdAt": "2026-06-12T14:05:00.000Z",
+    "resolvedAt": "2026-06-12T14:48:00.000Z"
+  },
+  {
+    "_id": "INC-008",
+    "serviceId": "notification-service",
+    "title": "Notification backlog after worker throughput collapse",
+    "summary": "Email and in-app notifications lagged as the notifications queue depth climbed and workers drained messages too slowly.",
+    "symptoms": [
+      "email and notification delivery delayed",
+      "queue depth increasing",
+      "workers processing slowly",
+      "dead-letter count remains low"
+    ],
+    "rootCause": "Queue saturation caused by insufficient worker throughput.",
+    "resolution": "Increased worker concurrency and restored prefetch so the backlog drained.",
     "status": "resolved",
     "severity": "high",
     "historicalConfig": {
       "queue": "notifications",
+      "workerConcurrency": 2,
       "prefetch": 1,
-      "deadLetterEnabled": false,
-      "workerConcurrency": 2
+      "deadLetterEnabled": true,
+      "provider": "fictional-mail"
     },
     "createdAt": "2026-06-21T07:15:00.000Z",
     "resolvedAt": "2026-06-21T08:55:00.000Z"
+  },
+  {
+    "_id": "INC-009",
+    "serviceId": "notification-service",
+    "title": "Delivery failures under external mail provider throttling",
+    "summary": "Outbound notification sends failed in waves as the fictional-mail API returned rate-limit responses and retries piled up.",
+    "symptoms": [
+      "delivery failures",
+      "HTTP 429 throttling responses",
+      "retries increasing",
+      "queue depth grows only during send bursts"
+    ],
+    "rootCause": "External email provider rate limiting.",
+    "resolution": "Lowered the send rate and enabled provider-aware backoff until the throttling window ended.",
+    "status": "resolved",
+    "severity": "medium",
+    "historicalConfig": {
+      "provider": "fictional-mail",
+      "maxSendRatePerMinute": 1200,
+      "workerConcurrency": 8,
+      "queue": "notifications"
+    },
+    "createdAt": "2026-07-18T16:10:00.000Z",
+    "resolvedAt": "2026-07-18T17:25:00.000Z"
   }
 ]

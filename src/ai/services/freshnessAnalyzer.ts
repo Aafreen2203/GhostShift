@@ -1,10 +1,10 @@
-import { buildFreshnessPrompt } from "../prompts/freshness.js";
-import type { LLMProvider } from "../providers/types.js";
-import type { FreshnessAssessment, FreshnessStatus, LlmFreshnessAssessment } from "../types/analysis.js";
-import type { CurrentIncident, HistoricalIncident, SystemStateDifference } from "../types/incident.js";
-import { clampConfidence, parseLlmOutput } from "../validation/parse.js";
-import { LlmFreshnessAssessmentSchema, llmFreshnessJsonSchema } from "../validation/schemas.js";
-import { comparableFieldCount, compareSystemStates, incidentAgeDays } from "./systemStateCompare.js";
+import { buildFreshnessPrompt } from "../prompts/freshness";
+import type { LLMProvider } from "../providers/types";
+import type { FreshnessAssessment, FreshnessStatus, LlmFreshnessAssessment } from "../types/analysis";
+import type { CurrentIncident, HistoricalIncident, SystemStateDifference } from "../types/incident";
+import { clampConfidence, parseLlmOutput } from "../validation/parse";
+import { LlmFreshnessAssessmentSchema, llmFreshnessJsonSchema } from "../validation/schemas";
+import { comparableFieldCount, compareSystemStates, incidentAgeDays } from "./systemStateCompare";
 
 const SIGNIFICANT_FIELDS = new Set([
   "databaseConnectionLimit",

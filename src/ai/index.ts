@@ -1,27 +1,27 @@
-import { IncidentAnalyzer } from "./services/incidentAnalyzer.js";
-import { FreshnessAnalyzer } from "./services/freshnessAnalyzer.js";
-import { ResolutionProcessor } from "./services/resolutionProcessor.js";
-import { OpenAIProvider } from "./providers/openai.js";
-import type { LLMProvider } from "./providers/types.js";
-import type { CurrentIncident, HistoricalIncident } from "./types/incident.js";
-import type { IncidentAnalysis, FreshnessAssessment } from "./types/analysis.js";
-import type { ResolutionInput, ResolutionRecord } from "./types/resolution.js";
+import { IncidentAnalyzer } from "./services/incidentAnalyzer";
+import { FreshnessAnalyzer } from "./services/freshnessAnalyzer";
+import { ResolutionProcessor } from "./services/resolutionProcessor";
+import { OpenAIProvider } from "./providers/openai";
+import type { LLMProvider } from "./providers/types";
+import type { CurrentIncident, HistoricalIncident } from "./types/incident";
+import type { IncidentAnalysis, FreshnessAssessment } from "./types/analysis";
+import type { ResolutionInput, ResolutionRecord } from "./types/resolution";
 
-export type { CurrentIncident, HistoricalIncident, HistoricalAction, SystemState } from "./types/incident.js";
-export type { Evidence } from "./types/evidence.js";
+export type { CurrentIncident, HistoricalIncident, HistoricalAction, SystemState } from "./types/incident";
+export type { Evidence } from "./types/evidence";
 export type {
   IncidentAnalysis,
   FreshnessAssessment,
   ActionAttemptSummary,
   InvestigationSuggestion
-} from "./types/analysis.js";
-export type { ResolutionInput, ResolutionRecord } from "./types/resolution.js";
-export type { LLMProvider } from "./providers/types.js";
-export { OpenAIProvider } from "./providers/openai.js";
-export { AIResponseError, AIConfigurationError } from "./types/errors.js";
-export { aggregatePreviousActions } from "./services/actionAggregator.js";
-export { rankHistoricalIncidents } from "./services/similarity.js";
-export { compareSystemStates } from "./services/systemStateCompare.js";
+} from "./types/analysis";
+export type { ResolutionInput, ResolutionRecord } from "./types/resolution";
+export type { LLMProvider } from "./providers/types";
+export { OpenAIProvider } from "./providers/openai";
+export { AIResponseError, AIConfigurationError } from "./types/errors";
+export { aggregatePreviousActions } from "./services/actionAggregator";
+export { rankHistoricalIncidents } from "./services/similarity";
+export { compareSystemStates } from "./services/systemStateCompare";
 
 export class GhostShiftAI {
   readonly incidentAnalyzer: IncidentAnalyzer;

@@ -1,6 +1,8 @@
+import { embedText, incidentEmbeddingText } from "@/lib/embeddings";
 import { COLLECTIONS, getCollection } from "@/lib/mongodb";
 import { jsonError, serverError } from "@/lib/http";
 import type { Incident } from "@/types/incident";
+import type { Service } from "@/types/service";
 
 export const runtime = "nodejs";
 
@@ -38,14 +40,32 @@ export async function POST(
     }
 
     const collection = await getCollection<Incident>(COLLECTIONS.incidents);
+    const existing = await collection.findOne({ _id: id });
+    if (!existing) {
+      return jsonError("Incident not found", 404);
+    }
+
+    const resolvedAt = new Date().toISOString();
+    const rootCause = parsed.rootCause ?? existing.rootCause;
+    const embedding = await embedText(
+      incidentEmbeddingText({
+        title: existing.title,
+        summary: existing.summary,
+        symptoms: existing.symptoms,
+        rootCause,
+        resolution: parsed.resolution,
+      }),
+    );
+
     const updated = await collection.findOneAndUpdate(
       { _id: id },
       {
         $set: {
-          status: "resolved",
+          status: "resolved" as const,
           resolution: parsed.resolution,
-          resolvedAt: new Date().toISOString(),
-          ...(parsed.rootCause ? { rootCause: parsed.rootCause } : {}),
+          resolvedAt,
+          embedding,
+          ...(rootCause ? { rootCause } : {}),
         },
       },
       { returnDocument: "after" },
@@ -53,6 +73,18 @@ export async function POST(
 
     if (!updated) {
       return jsonError("Incident not found", 404);
+    }
+
+    const remainingActive = await collection.countDocuments({
+      serviceId: updated.serviceId,
+      status: "active",
+    });
+    if (remainingActive === 0) {
+      const services = await getCollection<Service>(COLLECTIONS.services);
+      await services.updateOne(
+        { _id: updated.serviceId },
+        { $set: { status: "healthy" } },
+      );
     }
 
     return Response.json(updated);

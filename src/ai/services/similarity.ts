@@ -1,5 +1,5 @@
-import type { CurrentIncident, HistoricalIncident } from "../types/incident.js";
-import { connectionRatio } from "./systemStateCompare.js";
+import type { CurrentIncident, HistoricalIncident } from "../types/incident";
+import { connectionRatio } from "./systemStateCompare";
 
 const STOP_WORDS = new Set(["the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "with"]);
 

@@ -1,5 +1,5 @@
-import type { ActionAttemptSummary } from "../types/analysis.js";
-import type { ActionResult, HistoricalIncident } from "../types/incident.js";
+import type { ActionAttemptSummary } from "../types/analysis";
+import type { ActionResult, HistoricalIncident } from "../types/incident";
 
 const VERB_MAP: Record<string, string> = {
   restarted: "restart",

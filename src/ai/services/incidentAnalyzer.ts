@@ -1,5 +1,5 @@
-import { buildIncidentAnalysisPrompt } from "../prompts/incidentAnalysis.js";
-import type { LLMProvider } from "../providers/types.js";
+import { buildIncidentAnalysisPrompt } from "../prompts/incidentAnalysis";
+import type { LLMProvider } from "../providers/types";
 import type {
   IncidentAnalysis,
   InvestigationSuggestion,
@@ -7,14 +7,14 @@ import type {
   LlmIncidentAnalysis,
   SimilarIncidentEvidence,
   SuccessfulResolution
-} from "../types/analysis.js";
-import type { Evidence } from "../types/evidence.js";
-import type { CurrentIncident, HistoricalIncident } from "../types/incident.js";
-import { clampConfidence, parseLlmOutput } from "../validation/parse.js";
-import { LlmIncidentAnalysisSchema, llmIncidentAnalysisJsonSchema } from "../validation/schemas.js";
-import { aggregatePreviousActions } from "./actionAggregator.js";
-import { FreshnessAnalyzer } from "./freshnessAnalyzer.js";
-import { rankHistoricalIncidents } from "./similarity.js";
+} from "../types/analysis";
+import type { Evidence } from "../types/evidence";
+import type { CurrentIncident, HistoricalIncident } from "../types/incident";
+import { clampConfidence, parseLlmOutput } from "../validation/parse";
+import { LlmIncidentAnalysisSchema, llmIncidentAnalysisJsonSchema } from "../validation/schemas";
+import { aggregatePreviousActions } from "./actionAggregator";
+import { FreshnessAnalyzer } from "./freshnessAnalyzer";
+import { rankHistoricalIncidents } from "./similarity";
 
 const RELEVANCE_THRESHOLD = 0.35;
 

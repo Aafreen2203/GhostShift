@@ -1,5 +1,5 @@
-import type { Evidence } from "./evidence.js";
-import type { ActionResult, SystemStateDifference } from "./incident.js";
+import type { Evidence } from "./evidence";
+import type { ActionResult, SystemStateDifference } from "./incident";
 
 export type FreshnessStatus =
   | "relevant"

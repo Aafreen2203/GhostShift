@@ -1,0 +1,56 @@
+[
+  {
+    "_id": "EVT-DEMO-001",
+    "serviceId": "payment-api",
+    "type": "metric",
+    "metric": "db_connections_pct",
+    "value": 75,
+    "max": 100,
+    "message": "Database connection usage reached 75%.",
+    "severity": "info",
+    "timestamp": "2026-10-03T09:00:00.000Z"
+  },
+  {
+    "_id": "EVT-DEMO-002",
+    "serviceId": "payment-api",
+    "type": "metric",
+    "metric": "db_connections_pct",
+    "value": 87,
+    "max": 100,
+    "message": "Database connection usage reached 87%.",
+    "severity": "warning",
+    "timestamp": "2026-10-03T09:02:00.000Z"
+  },
+  {
+    "_id": "EVT-DEMO-003",
+    "serviceId": "payment-api",
+    "type": "metric",
+    "metric": "db_connections_pct",
+    "value": 96,
+    "max": 100,
+    "message": "Database connection usage reached 96%.",
+    "severity": "critical",
+    "timestamp": "2026-10-03T09:04:00.000Z"
+  },
+  {
+    "_id": "EVT-DEMO-004",
+    "serviceId": "payment-api",
+    "type": "warning",
+    "metric": "payment_latency_ms",
+    "value": 2400,
+    "message": "Payment latency is increasing across checkout requests.",
+    "severity": "warning",
+    "timestamp": "2026-10-03T09:05:00.000Z"
+  },
+  {
+    "_id": "EVT-DEMO-005",
+    "serviceId": "payment-api",
+    "type": "error",
+    "metric": "payment_timeout_rate",
+    "value": 18,
+    "max": 100,
+    "message": "Intermittent payment timeout rate is increasing.",
+    "severity": "critical",
+    "timestamp": "2026-10-03T09:06:00.000Z"
+  }
+]

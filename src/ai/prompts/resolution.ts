@@ -1,4 +1,4 @@
-import { SHARED_GROUNDING_RULES } from "./shared.js";
+import { SHARED_GROUNDING_RULES } from "./shared";
 
 export function buildResolutionPrompt(payload: unknown): string {
   return `

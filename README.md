@@ -1,51 +1,40 @@
 # GhostShift
 
-GhostShift is an AI-powered institutional memory system for engineering teams.
+Institutional memory for engineering teams.
 
-When a developer, DevOps engineer, or system owner leaves, practical knowledge about failures, failed fixes, temporary recoveries, and successful resolutions can leave with them. GhostShift stores that technical incident knowledge in MongoDB so the next person on call can look it up.
+**When people leave, their technical knowledge shouldn’t leave with them.**
 
-GhostShift preserves technical incident knowledge so future engineers can retrieve:
-
-- similar failures
-- previous troubleshooting attempts
-- failed fixes
-- temporary fixes
-- successful resolutions
-
-This repository is the shared foundation. Vector Search, incident analysis, aggregation, and Change Streams are stubbed on purpose so three teammates can build them in parallel.
+GhostShift stores historical incident knowledge in MongoDB. When a new failure appears, it retrieves similar incidents with Vector Search, shows what engineers tried before, warns when infrastructure changed, and produces an evidence-grounded brief for a human decision.
 
 ## Architecture
 
 ```text
-Next.js
+Next.js UI
   ↓
 Next.js Route Handlers
   ↓
-MongoDB Atlas  (database: ghostshift)
+MongoDB Atlas (ghostshift)
+  ├── documents: services / incidents / actions / events
+  ├── Vector Search (+ cosine fallback)
+  ├── aggregation (“we tried that already”, freshness)
+  └── Change Streams → SSE (/api/stream)
+
+Optional: OpenAI enrichment (evidence-only prompts)
 ```
 
-Future integrations, not implemented in this pass:
+## Demo flow
 
-- MongoDB Vector Search
-- AI incident analysis
-- Aggregation
-- Change Streams
-- knowledge freshness comparison
-
-## Collections
-
-Database name: `ghostshift`
-
-| Collection | What it stores |
-| --- | --- |
-| `services` | Systems the team owns, including current status and `currentConfig`. |
-| `incidents` | Failures, symptoms, root cause, resolution, and the config at the time (`historicalConfig`). |
-| `events` | Incoming monitoring signals. The simulator writes these. Detection is not built yet. |
-| `actions` | What engineers tried, and whether the outcome was `failed`, `temporary`, or `resolved`. |
-
-Shared TypeScript interfaces live in `types/`. Those field names are the team contract.
-
-**Shared TypeScript interfaces and database field names are part of the team contract. Coordinate before changing them.**
+1. Open `/dashboard`
+2. Open `/simulator` and fire:
+   - DB connections 87%
+   - DB connections 96% *(opens active incident)*
+   - or timeout after pressure
+3. Open the active incident → **Investigate with GhostShift**
+4. Review similar historical memory (`INC-001` should rank strongly)
+5. Review failed / temporary / resolved actions
+6. Review “We’ve tried that already” counts from MongoDB
+7. Review knowledge freshness warning
+8. Optionally set `OPENAI_API_KEY` for grounded AI wording
 
 ## Running locally
 
@@ -54,111 +43,55 @@ npm install
 copy .env.example .env.local
 ```
 
-Set `MONGODB_URI` in `.env.local` to your MongoDB Atlas connection string. Do not commit that file.
+Set `MONGODB_URI`. Allow your IP in Atlas Network Access.
 
 ```bash
 npm run seed
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open http://localhost:3000
 
-`npm run seed` connects to MongoDB, clears only the four GhostShift collections, and inserts the synthetic demo data:
+## Environment
 
-- 3 services (Payment API, Authentication Service, Notification Service)
-- 6 resolved historical incidents
-- 15 actions
-
-The events collection is cleared and left empty.
-
-## What works now
-
-- `GET /api/health` checks MongoDB
-- `GET /api/services`
-- `GET /api/incidents` with optional `status` and `serviceId`
-- `GET /api/incidents/:id`
-- `GET /api/incidents/:id/actions`
-- `POST /api/events` stores a system event
-- `POST /api/incidents/:id/resolve` with `{ "resolution": "...", "rootCause": "..." }`
-- Dashboard, incident list, and incident detail read that data
-- The simulator can insert synthetic events
-- Search shows a placeholder and does not fake similarity
-
-Placeholders:
-
-- `POST /api/incidents/search`
-- `POST /api/agent/analyse`
-- `GET /api/stream`
-
-## Team workstreams
-
-### Workstream 1 — MongoDB / Backend
-
-- aggregation
-- event processing
-- Change Streams
-- knowledge freshness
-
-Start here:
-
-- `lib/aggregation.ts`
-- `lib/incident-engine.ts`
-- `lib/change-stream.ts`
-- `app/api/events/route.ts`
-- `app/api/stream/route.ts`
-
-`historicalConfig` on each incident and `currentConfig` on each service are already different, so freshness checks have something to compare.
-
-### Workstream 2 — AI / Retrieval
-
-- embeddings
-- MongoDB Vector Search
-- incident similarity
-- evidence-grounded incident brief
-- "We tried that already"
-
-Start here:
-
-- `lib/embeddings.ts`
-- `lib/vector-search.ts`
-- `lib/agent.ts`
-- `app/api/incidents/search/route.ts`
-- `app/api/agent/analyse/route.ts`
-- `components/SimilarIncidentCard.tsx`
-- `components/AgentBrief.tsx`
-
-Payment API has three different historical incidents so search has more than one case to rank. Do not return fake vectors or fake scores.
-
-### Workstream 3 — Frontend / Demo
-
-- dashboard polish
-- incident intelligence view
-- simulator
-- live updates
-- responsive design
-
-Start here:
-
-- `app/dashboard/page.tsx`
-- `app/incidents/page.tsx`
-- `app/incidents/[id]/page.tsx`
-- `app/search/page.tsx`
-- `app/simulator/page.tsx`
-- `components/`
-
-## Environment variables
-
-| Name | Required | Purpose |
+| Variable | Required | Purpose |
 | --- | --- | --- |
-| `MONGODB_URI` | Yes | MongoDB Atlas connection string. Placeholder only in `.env.example`. |
+| `MONGODB_URI` | Yes | Atlas connection string |
+| `OPENAI_API_KEY` | No | Optional grounded AI brief |
+| `OPENAI_MODEL` | No | Default `gpt-4o-mini` |
 
-The application uses the database name `ghostshift`. Credentials are never hardcoded.
+Database name is always `ghostshift`.
 
-## Demo data
+Atlas Vector Search index expected by code:
 
-All seed records are fictional. Do not replace them with real employee or company incidents.
+- name: `incident_embedding_index`
+- path: `embedding`
+- dimensions: `384`
+- similarity: `cosine`
 
-Stable ids for local demos:
+`npm run seed` generates embeddings and attempts to create this index. If index creation fails, cosine fallback still ranks stored vectors.
 
-- Services: `payment-api`, `auth-service`, `notification-service`
-- Payment incidents: `inc-pay-timeouts`, `inc-pay-expired-credentials`, `inc-pay-provider-latency`
+## Seed data
+
+Synthetic only:
+
+- 3 services
+- 9 incidents (`INC-001`…`INC-009`)
+- 30 actions
+- 5 demo events in `data/demo-events.json` (used by simulator presets; not auto-inserted by seed)
+
+Main demo incident: **`INC-001`** (connection pool exhaustion).  
+Hard case: **`INC-002`** (provider degradation) with similar symptoms.
+
+## Important product rules
+
+- Historical root causes are evidence, not confirmed current causes
+- Action statistics come from MongoDB, never invented by the LLM
+- No autonomous remediation
+- Temporary actions use `successful: false`; only `resolved` uses `successful: true`
+
+## Team boundaries
+
+- MongoDB/backend: `lib/mongodb.ts`, aggregation, incident-engine, change-stream, seed/data, APIs
+- AI/retrieval: embeddings, vector-search, agent, optional `src/ai`
+- Frontend/demo: `app/*`, `components/*`

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { evaluateEvent } from "@/lib/incident-engine";
 import { COLLECTIONS, getCollection } from "@/lib/mongodb";
 import { jsonError, serverError } from "@/lib/http";
 import type { SystemEvent, SystemEventSeverity, SystemEventType } from "@/types/event";
@@ -82,7 +83,18 @@ export async function POST(request: Request) {
 
     const collection = await getCollection<SystemEvent>(COLLECTIONS.events);
     await collection.insertOne(parsed.event);
-    return Response.json(parsed.event, { status: 201 });
+
+    // Detection runs after persist so Change Streams and HTTP path share the same rules.
+    const detection = await evaluateEvent(parsed.event);
+
+    return Response.json(
+      {
+        ...parsed.event,
+        openedIncidentId: detection.openedIncidentId,
+        detectionReason: detection.reason,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     return serverError("POST /api/events", error, "Failed to store event");
   }

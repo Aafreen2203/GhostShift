@@ -1,5 +1,5 @@
 import { z, type ZodType } from "zod";
-import { AIResponseError } from "../types/errors.js";
+import { AIResponseError } from "../types/errors";
 
 export function parseLlmOutput<T>(schema: ZodType<T>, value: unknown, context: string): T {
   const result = schema.safeParse(value);

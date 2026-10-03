@@ -1,10 +1,10 @@
-import { buildResolutionPrompt } from "../prompts/resolution.js";
-import type { LLMProvider } from "../providers/types.js";
-import type { Evidence } from "../types/evidence.js";
-import type { CurrentIncident } from "../types/incident.js";
-import type { LlmResolutionStructure, ResolutionActionInput, ResolutionInput, ResolutionRecord } from "../types/resolution.js";
-import { parseLlmOutput } from "../validation/parse.js";
-import { LlmResolutionStructureSchema, llmResolutionJsonSchema } from "../validation/schemas.js";
+import { buildResolutionPrompt } from "../prompts/resolution";
+import type { LLMProvider } from "../providers/types";
+import type { Evidence } from "../types/evidence";
+import type { CurrentIncident } from "../types/incident";
+import type { LlmResolutionStructure, ResolutionActionInput, ResolutionInput, ResolutionRecord } from "../types/resolution";
+import { parseLlmOutput } from "../validation/parse";
+import { LlmResolutionStructureSchema, llmResolutionJsonSchema } from "../validation/schemas";
 
 export class ResolutionProcessor {
   constructor(private readonly provider: LLMProvider) {}

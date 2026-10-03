@@ -2,7 +2,7 @@
   {
     "_id": "payment-api",
     "name": "Payment API",
-    "description": "Processes customer payment requests",
+    "description": "Processes customer payment requests.",
     "status": "healthy",
     "ownerTeam": "Payments",
     "technologies": ["Node.js", "MongoDB", "Kubernetes"],
@@ -13,27 +13,30 @@
       "provider": "fictional-pay",
       "credentialId": "fp-key-2026-q2",
       "backupProvider": "fictional-pay-backup",
-      "circuitBreaker": true
+      "workerReplicas": 6,
+      "queueName": "payment-processing"
     }
   },
   {
     "_id": "auth-service",
     "name": "Authentication Service",
-    "description": "Issues and validates user sessions",
+    "description": "Issues and validates user sessions and access tokens.",
     "status": "healthy",
     "ownerTeam": "Identity",
-    "technologies": ["Go", "MongoDB", "Kubernetes"],
+    "technologies": ["Go", "Redis", "Kubernetes"],
     "currentConfig": {
-      "sessionStore": "mongo",
+      "sessionStore": "redis-sessions-v3",
+      "redisPoolMax": 50,
       "tokenTtlMinutes": 30,
-      "tlsCertFingerprint": "demo-cert-2026",
-      "sessionsIndexed": true
+      "signingKeyId": "auth-signing-2026-b",
+      "certificateExpiresAt": "2027-01-15",
+      "deployedImage": "auth-service:1.18.2"
     }
   },
   {
     "_id": "notification-service",
     "name": "Notification Service",
-    "description": "Delivers email and in-app notifications",
+    "description": "Delivers email and in-app notifications.",
     "status": "healthy",
     "ownerTeam": "Messaging",
     "technologies": ["Node.js", "MongoDB", "SMTP"],
@@ -41,8 +44,9 @@
       "queue": "notifications",
       "workerConcurrency": 8,
       "prefetch": 20,
-      "deadLetterEnabled": true,
-      "provider": "fictional-mail"
+      "provider": "fictional-mail",
+      "maxSendRatePerMinute": 600,
+      "deadLetterEnabled": true
     }
   }
 ]
