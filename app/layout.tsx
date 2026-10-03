@@ -23,6 +23,7 @@ const links = [
   ["/dashboard", "Dashboard"],
   ["/incidents", "Incidents"],
   ["/search", "Search"],
+  ["/record", "Record"],
   ["/simulator", "Simulator"],
 ] as const;
 
