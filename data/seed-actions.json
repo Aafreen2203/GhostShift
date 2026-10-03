@@ -1,0 +1,152 @@
+[
+  {
+    "_id": "act-pay-timeout-1",
+    "incidentId": "inc-pay-timeouts",
+    "serviceId": "payment-api",
+    "action": "Restart Payment API container",
+    "result": "Timeouts stopped for about 20 minutes, then returned as the pool filled again.",
+    "outcome": "temporary",
+    "successful": true,
+    "timestamp": "2026-01-14T09:28:00.000Z"
+  },
+  {
+    "_id": "act-pay-timeout-2",
+    "incidentId": "inc-pay-timeouts",
+    "serviceId": "payment-api",
+    "action": "Increase API timeout",
+    "result": "Requests waited longer and still timed out. The connection pool stayed saturated.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-01-14T10:05:00.000Z"
+  },
+  {
+    "_id": "act-pay-timeout-3",
+    "incidentId": "inc-pay-timeouts",
+    "serviceId": "payment-api",
+    "action": "Increase database connection pool",
+    "result": "Raised connectionPoolMax from 20 to 100. Connection wait time dropped and payment timeouts stopped.",
+    "outcome": "resolved",
+    "successful": true,
+    "timestamp": "2026-01-14T11:20:00.000Z"
+  },
+  {
+    "_id": "act-pay-creds-1",
+    "incidentId": "inc-pay-expired-credentials",
+    "serviceId": "payment-api",
+    "action": "Retry failed payment calls",
+    "result": "The provider kept returning 401. Retries did not change the failure.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-02-02T16:14:00.000Z"
+  },
+  {
+    "_id": "act-pay-creds-2",
+    "incidentId": "inc-pay-expired-credentials",
+    "serviceId": "payment-api",
+    "action": "Clear the application credential cache",
+    "result": "The cached key was already the expired key. Authorizations still failed.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-02-02T16:32:00.000Z"
+  },
+  {
+    "_id": "act-pay-creds-3",
+    "incidentId": "inc-pay-expired-credentials",
+    "serviceId": "payment-api",
+    "action": "Rotate external API credentials",
+    "result": "The new fictional-pay key was accepted and checkout authorizations recovered.",
+    "outcome": "resolved",
+    "successful": true,
+    "timestamp": "2026-02-02T17:05:00.000Z"
+  },
+  {
+    "_id": "act-pay-provider-1",
+    "incidentId": "inc-pay-provider-latency",
+    "serviceId": "payment-api",
+    "action": "Scale Payment API from 3 to 8 replicas",
+    "result": "Latency dipped briefly, then tracked the provider degradation again.",
+    "outcome": "temporary",
+    "successful": true,
+    "timestamp": "2026-03-19T13:40:00.000Z"
+  },
+  {
+    "_id": "act-pay-provider-2",
+    "incidentId": "inc-pay-provider-latency",
+    "serviceId": "payment-api",
+    "action": "Fail over to the backup payment provider",
+    "result": "Checkouts recovered on fictional-pay-backup while the primary provider was degraded.",
+    "outcome": "resolved",
+    "successful": true,
+    "timestamp": "2026-03-19T14:25:00.000Z"
+  },
+  {
+    "_id": "act-auth-cert-1",
+    "incidentId": "inc-auth-cert-rotation",
+    "serviceId": "auth-service",
+    "action": "Restart Authentication Service pods",
+    "result": "New pods loaded the same outdated trust bundle. Handshakes still failed.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-04-03T08:22:00.000Z"
+  },
+  {
+    "_id": "act-auth-cert-2",
+    "incidentId": "inc-auth-cert-rotation",
+    "serviceId": "auth-service",
+    "action": "Update the trust store with the rotated certificate",
+    "result": "Clients completed handshakes after the new fingerprint was published.",
+    "outcome": "resolved",
+    "successful": true,
+    "timestamp": "2026-04-03T08:48:00.000Z"
+  },
+  {
+    "_id": "act-auth-session-1",
+    "incidentId": "inc-auth-session-latency",
+    "serviceId": "auth-service",
+    "action": "Increase session token TTL",
+    "result": "Lookups stayed slow. Token lifetime was not the bottleneck.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-05-11T18:55:00.000Z"
+  },
+  {
+    "_id": "act-auth-session-2",
+    "incidentId": "inc-auth-session-latency",
+    "serviceId": "auth-service",
+    "action": "Add an index on sessions.userId",
+    "result": "Session lookup p95 dropped below 50ms.",
+    "outcome": "resolved",
+    "successful": true,
+    "timestamp": "2026-05-11T19:16:00.000Z"
+  },
+  {
+    "_id": "act-notify-1",
+    "incidentId": "inc-notify-queue-backlog",
+    "serviceId": "notification-service",
+    "action": "Restart notification workers",
+    "result": "The backlog drained slightly, then grew again.",
+    "outcome": "temporary",
+    "successful": true,
+    "timestamp": "2026-06-21T07:28:00.000Z"
+  },
+  {
+    "_id": "act-notify-2",
+    "incidentId": "inc-notify-queue-backlog",
+    "serviceId": "notification-service",
+    "action": "Increase worker concurrency",
+    "result": "Workers stayed idle because prefetch was still 1.",
+    "outcome": "failed",
+    "successful": false,
+    "timestamp": "2026-06-21T07:46:00.000Z"
+  },
+  {
+    "_id": "act-notify-3",
+    "incidentId": "inc-notify-queue-backlog",
+    "serviceId": "notification-service",
+    "action": "Restore prefetch and dead-letter routing",
+    "result": "Queue depth returned to normal and delayed emails drained.",
+    "outcome": "resolved",
+    "successful": true,
+    "timestamp": "2026-06-21T08:30:00.000Z"
+  }
+]

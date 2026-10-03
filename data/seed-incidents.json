@@ -1,0 +1,133 @@
+[
+  {
+    "_id": "inc-pay-timeouts",
+    "serviceId": "payment-api",
+    "title": "Intermittent payment timeouts",
+    "summary": "Checkout requests timed out in bursts while the Payment API waited on saturated database connections.",
+    "symptoms": [
+      "intermittent payment timeout",
+      "high latency",
+      "database connection saturation"
+    ],
+    "rootCause": "Database connection pool exhaustion.",
+    "resolution": "Increased the database connection pool max from 20 to 100 and restarted Payment API after the config change.",
+    "status": "resolved",
+    "severity": "high",
+    "historicalConfig": {
+      "database": "payments-prod-v2",
+      "connectionPoolMax": 20,
+      "timeoutMs": 8000
+    },
+    "createdAt": "2026-01-14T09:12:00.000Z",
+    "resolvedAt": "2026-01-14T11:40:00.000Z"
+  },
+  {
+    "_id": "inc-pay-expired-credentials",
+    "serviceId": "payment-api",
+    "title": "Payment failures caused by expired external API credentials",
+    "summary": "Payment authorization calls started failing after the fictional-pay API key passed its expiry date.",
+    "symptoms": [
+      "payment authorization failures",
+      "401 responses from the payment provider",
+      "spike in declined checkouts"
+    ],
+    "rootCause": "External payment-provider API credentials had expired.",
+    "resolution": "Rotated the fictional-pay API key and updated the Payment API credential reference.",
+    "status": "resolved",
+    "severity": "critical",
+    "historicalConfig": {
+      "provider": "fictional-pay",
+      "credentialId": "fp-key-2025-q3",
+      "credentialExpiresAt": "2026-02-01"
+    },
+    "createdAt": "2026-02-02T16:05:00.000Z",
+    "resolvedAt": "2026-02-02T17:18:00.000Z"
+  },
+  {
+    "_id": "inc-pay-provider-latency",
+    "serviceId": "payment-api",
+    "title": "Payment latency caused by third-party payment-provider degradation",
+    "summary": "Checkout latency followed a degradation on the primary payment provider while database metrics stayed normal.",
+    "symptoms": [
+      "elevated checkout latency",
+      "payment provider status incident",
+      "normal database connection usage"
+    ],
+    "rootCause": "Third-party payment-provider degradation.",
+    "resolution": "Failed over to the backup payment provider and left the circuit breaker open until the primary provider recovered.",
+    "status": "resolved",
+    "severity": "medium",
+    "historicalConfig": {
+      "provider": "fictional-pay",
+      "backupProvider": "none",
+      "circuitBreaker": false
+    },
+    "createdAt": "2026-03-19T13:22:00.000Z",
+    "resolvedAt": "2026-03-19T15:05:00.000Z"
+  },
+  {
+    "_id": "inc-auth-cert-rotation",
+    "serviceId": "auth-service",
+    "title": "Login failures after certificate rotation",
+    "summary": "Clients could not complete TLS handshakes after a certificate rotation because the service still trusted the previous certificate.",
+    "symptoms": [
+      "TLS handshake errors",
+      "login HTTP 500 responses",
+      "mobile clients unable to refresh tokens"
+    ],
+    "rootCause": "The trust store still referenced the previous TLS certificate after rotation.",
+    "resolution": "Published the new certificate fingerprint and rolled the Authentication Service.",
+    "status": "resolved",
+    "severity": "high",
+    "historicalConfig": {
+      "tlsCertFingerprint": "demo-cert-2025",
+      "tokenTtlMinutes": 60
+    },
+    "createdAt": "2026-04-03T08:10:00.000Z",
+    "resolvedAt": "2026-04-03T09:02:00.000Z"
+  },
+  {
+    "_id": "inc-auth-session-latency",
+    "serviceId": "auth-service",
+    "title": "Session validation latency spike",
+    "summary": "Session lookups slowed sharply even though CPU and error rates stayed flat.",
+    "symptoms": [
+      "slow login",
+      "session lookup p95 above 2 seconds",
+      "healthy CPU"
+    ],
+    "rootCause": "The sessions collection had no index on userId.",
+    "resolution": "Added an index on sessions.userId and confirmed lookup latency returned to baseline.",
+    "status": "resolved",
+    "severity": "medium",
+    "historicalConfig": {
+      "sessionStore": "mongo",
+      "sessionsIndexed": false
+    },
+    "createdAt": "2026-05-11T18:44:00.000Z",
+    "resolvedAt": "2026-05-11T19:30:00.000Z"
+  },
+  {
+    "_id": "inc-notify-queue-backlog",
+    "serviceId": "notification-service",
+    "title": "Email delivery backlog after queue misconfiguration",
+    "summary": "Notification emails queued up after a deploy left workers idle and dead-letter routing disabled.",
+    "symptoms": [
+      "delayed notification emails",
+      "growing queue depth",
+      "idle notification workers"
+    ],
+    "rootCause": "Queue prefetch was set to 1 and dead-letter routing was disabled after a config deploy.",
+    "resolution": "Restored worker prefetch to 20 and re-enabled dead-letter routing.",
+    "status": "resolved",
+    "severity": "high",
+    "historicalConfig": {
+      "queue": "notifications",
+      "prefetch": 1,
+      "deadLetterEnabled": false,
+      "workerConcurrency": 2
+    },
+    "createdAt": "2026-06-21T07:15:00.000Z",
+    "resolvedAt": "2026-06-21T08:55:00.000Z"
+  }
+]

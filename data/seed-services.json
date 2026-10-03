@@ -1,0 +1,48 @@
+[
+  {
+    "_id": "payment-api",
+    "name": "Payment API",
+    "description": "Processes customer payment requests",
+    "status": "healthy",
+    "ownerTeam": "Payments",
+    "technologies": ["Node.js", "MongoDB", "Kubernetes"],
+    "currentConfig": {
+      "database": "payments-prod-v2",
+      "connectionPoolMax": 100,
+      "timeoutMs": 3000,
+      "provider": "fictional-pay",
+      "credentialId": "fp-key-2026-q2",
+      "backupProvider": "fictional-pay-backup",
+      "circuitBreaker": true
+    }
+  },
+  {
+    "_id": "auth-service",
+    "name": "Authentication Service",
+    "description": "Issues and validates user sessions",
+    "status": "healthy",
+    "ownerTeam": "Identity",
+    "technologies": ["Go", "MongoDB", "Kubernetes"],
+    "currentConfig": {
+      "sessionStore": "mongo",
+      "tokenTtlMinutes": 30,
+      "tlsCertFingerprint": "demo-cert-2026",
+      "sessionsIndexed": true
+    }
+  },
+  {
+    "_id": "notification-service",
+    "name": "Notification Service",
+    "description": "Delivers email and in-app notifications",
+    "status": "healthy",
+    "ownerTeam": "Messaging",
+    "technologies": ["Node.js", "MongoDB", "SMTP"],
+    "currentConfig": {
+      "queue": "notifications",
+      "workerConcurrency": 8,
+      "prefetch": 20,
+      "deadLetterEnabled": true,
+      "provider": "fictional-mail"
+    }
+  }
+]
