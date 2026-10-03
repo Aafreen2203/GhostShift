@@ -9,6 +9,9 @@ export default function RecordPage() {
   const [resolution, setResolution] = useState("");
   const [rootCause, setRootCause] = useState("");
   const [serviceId, setServiceId] = useState("payment-api");
+  const [resolvedBy, setResolvedBy] = useState("");
+  const [environment, setEnvironment] = useState("");
+  const [usefulLink, setUsefulLink] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedId, setSavedId] = useState<string | null>(null);
@@ -19,13 +22,22 @@ export default function RecordPage() {
     setError(null);
     setSavedId(null);
 
+    const enrichedSummary = [
+      summary,
+      environment ? `Environment: ${environment}` : null,
+      resolvedBy ? `Resolved by: ${resolvedBy}` : null,
+      usefulLink ? `Link: ${usefulLink}` : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
     try {
       const response = await fetch("/api/incidents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          summary,
+          summary: enrichedSummary,
           resolution,
           rootCause: rootCause || undefined,
           serviceId,
@@ -41,6 +53,9 @@ export default function RecordPage() {
       setSummary("");
       setResolution("");
       setRootCause("");
+      setResolvedBy("");
+      setEnvironment("");
+      setUsefulLink("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save incident");
     } finally {
@@ -49,80 +64,167 @@ export default function RecordPage() {
   }
 
   return (
-    <main className="max-w-2xl space-y-4">
+    <main className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Record an incident</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Record an Incident
+        </h1>
+
         <p className="mt-1 text-sm text-slate-600">
-          Save a verified resolution into MongoDB organizational memory for future
-          retrieval.
+          Record a resolved incident so other engineers can learn from it.
         </p>
       </div>
 
       <form className="space-y-4" onSubmit={(event) => void onSubmit(event)}>
-        <label className="block text-sm">
-          Service
+        <div className="space-y-1">
+          <label htmlFor="service" className="block text-sm font-medium">
+            Service
+          </label>
           <select
+            id="service"
             value={serviceId}
             onChange={(event) => setServiceId(event.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
           >
             <option value="payment-api">Payment API</option>
             <option value="auth-service">Authentication Service</option>
             <option value="notification-service">Notification Service</option>
           </select>
-        </label>
+        </div>
 
-        <label className="block text-sm">
-          Problem title
+        <div className="space-y-1">
+          <label htmlFor="problem" className="block text-sm font-medium">
+            Problem
+          </label>
           <input
+            id="problem"
+            type="text"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             required
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
-            placeholder="e.g. Payment API timeout under peak traffic"
+            placeholder="e.g. Payment API timeout"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
           />
-        </label>
+        </div>
 
-        <label className="block text-sm">
-          Problem description
+        <div className="space-y-1">
+          <label htmlFor="description" className="block text-sm font-medium">
+            Problem description
+          </label>
           <textarea
+            id="description"
+            rows={4}
             value={summary}
             onChange={(event) => setSummary(event.target.value)}
             required
-            rows={4}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
-            placeholder="Describe symptoms and what happened..."
+            placeholder="Describe the problem, error messages, and what happened..."
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
           />
-        </label>
+        </div>
 
-        <label className="block text-sm">
-          Historical root cause (optional)
+        <div className="space-y-1">
+          <label htmlFor="rootCause" className="block text-sm font-medium">
+            Historical root cause (optional)
+          </label>
           <input
+            id="rootCause"
+            type="text"
             value={rootCause}
             onChange={(event) => setRootCause(event.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
             placeholder="e.g. Database connection pool exhaustion"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
           />
-        </label>
+        </div>
 
-        <label className="block text-sm">
-          Verified resolution
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label htmlFor="resolvedDate" className="block text-sm font-medium">
+              Date resolved
+            </label>
+            <input
+              id="resolvedDate"
+              type="date"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label htmlFor="resolvedBy" className="block text-sm font-medium">
+              Resolved by
+            </label>
+            <input
+              id="resolvedBy"
+              type="text"
+              value={resolvedBy}
+              onChange={(event) => setResolvedBy(event.target.value)}
+              placeholder="e.g. Alex"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <label htmlFor="environment" className="block text-sm font-medium">
+            Environment / Software / Tools
+          </label>
+          <input
+            id="environment"
+            type="text"
+            value={environment}
+            onChange={(event) => setEnvironment(event.target.value)}
+            placeholder="e.g. Payment API v2.3.1, MongoDB Atlas, Docker"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label htmlFor="solution" className="block text-sm font-medium">
+            Solution
+          </label>
           <textarea
+            id="solution"
+            rows={5}
             value={resolution}
             onChange={(event) => setResolution(event.target.value)}
             required
-            rows={4}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
-            placeholder="Describe the fix that permanently resolved the issue..."
+            placeholder="Describe how the problem was resolved..."
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
           />
-        </label>
+        </div>
+
+        <div className="space-y-1">
+          <label htmlFor="screenshot" className="block text-sm font-medium">
+            Screenshots
+          </label>
+          <input
+            id="screenshot"
+            type="file"
+            accept="image/*"
+            multiple
+            className="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label htmlFor="link" className="block text-sm font-medium">
+            Useful link
+          </label>
+          <input
+            id="link"
+            type="url"
+            value={usefulLink}
+            onChange={(event) => setUsefulLink(event.target.value)}
+            placeholder="e.g. GitHub PR, documentation, logs..."
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+          />
+        </div>
 
         <button
           type="submit"
           disabled={pending}
           className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-60"
         >
-          {pending ? "Saving..." : "Save incident memory"}
+          {pending ? "Saving..." : "Save Incident"}
         </button>
       </form>
 
