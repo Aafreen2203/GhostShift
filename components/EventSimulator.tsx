@@ -267,8 +267,8 @@ export function EventSimulator() {
         </div>
       ) : null}
 
-      {error ? <p className="text-sm text-red-300">{error}</p> : null}
-      {note ? <p className="text-sm text-slate-300">{note}</p> : null}
+      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      {note ? <p className="text-sm text-slate-600">{note}</p> : null}
 
       <section
         className={`gs-panel border-emerald-500/25 p-4 ${
@@ -276,7 +276,7 @@ export function EventSimulator() {
         }`}
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
             MongoDB live path
           </h3>
           <MongoBadge kind="changestream" />
@@ -293,11 +293,11 @@ export function EventSimulator() {
               key={step}
               className={`rounded-md border px-2 py-2 text-center text-[11px] ${
                 pipelinePulse
-                  ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-100"
-                  : "border-gs-border bg-black/20 text-gs-muted"
+                  ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-800"
+                  : "border-gs-border bg-slate-50 text-gs-muted"
               }`}
             >
-              <span className="gs-mono text-emerald-300/80">
+              <span className="gs-mono text-emerald-700/80">
                 {String(index + 1).padStart(2, "0")}
               </span>
               <p className="mt-1">{step}</p>
@@ -313,7 +313,7 @@ export function EventSimulator() {
               Current Signals
             </h3>
             {newEventFlash ? (
-              <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[10px] text-emerald-100">
+              <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[10px] text-emerald-800">
                 NEW EVENT
               </span>
             ) : null}
@@ -327,7 +327,7 @@ export function EventSimulator() {
               {posted.map((event) => (
                 <li
                   key={event._id}
-                  className="gs-new-event rounded-md border border-gs-border bg-black/25 px-3 py-2"
+                  className="gs-new-event rounded-md border border-gs-border bg-slate-50 px-3 py-2"
                 >
                   <p className="gs-mono text-[11px] text-gs-cyan">
                     {event._id} · {event.metric ?? event.type}
@@ -335,7 +335,7 @@ export function EventSimulator() {
                       ? ` = ${event.value}${event.max ? ` / ${event.max}` : ""}`
                       : ""}
                   </p>
-                  <p className="mt-1 text-sm text-slate-200">{event.message}</p>
+                  <p className="mt-1 text-sm text-slate-700">{event.message}</p>
                 </li>
               ))}
             </ul>
@@ -345,7 +345,7 @@ export function EventSimulator() {
         <section className="gs-panel p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Radio className="h-4 w-4 text-emerald-300" />
+              <Radio className="h-4 w-4 text-emerald-700" />
               <h3 className="text-sm font-semibold uppercase tracking-wide">
                 Live Event Console
               </h3>
@@ -353,7 +353,7 @@ export function EventSimulator() {
             <MongoBadge kind="changestream" />
           </div>
           <MongoCaption>Streaming from MongoDB Change Streams</MongoCaption>
-          <div className="mt-3 min-h-48 rounded-md border border-gs-border bg-[#05070b] p-3">
+          <div className="mt-3 min-h-48 rounded-md border border-gs-border bg-slate-50 p-3">
             {live.length === 0 ? (
               <p className="gs-mono text-xs text-gs-muted">
                 waiting for change stream…
@@ -363,7 +363,7 @@ export function EventSimulator() {
                 {live.map((line, index) => (
                   <li
                     key={`${line}-${index}`}
-                    className="gs-mono gs-new-event text-xs leading-5 text-emerald-300/90"
+                    className="gs-mono gs-new-event text-xs leading-5 text-emerald-700/90"
                   >
                     {line}
                   </li>

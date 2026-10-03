@@ -169,7 +169,7 @@ export function SearchClient() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-[11px] text-gs-muted">
             Searching:{" "}
-            <span className="gs-mono text-slate-300">
+            <span className="gs-mono text-slate-600">
               incidents · actions · resolutions
             </span>
           </p>
@@ -188,7 +188,7 @@ export function SearchClient() {
         <MongoMemoryEngine running={loading} data={traceData} />
       ) : null}
 
-      {error ? <p className="text-sm text-red-300">{error}</p> : null}
+      {error ? <p className="text-sm text-red-700">{error}</p> : null}
       {sourceNote ? (
         <div className="flex flex-wrap items-center gap-2">
           <MongoBadge kind="vector" />
@@ -197,7 +197,7 @@ export function SearchClient() {
             <button
               type="button"
               onClick={() => setTraceOpen(true)}
-              className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-[11px] text-emerald-100"
+              className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-[11px] text-emerald-800"
             >
               View MongoDB Trace
             </button>
@@ -213,9 +213,9 @@ export function SearchClient() {
             </h2>
             <MongoBadge kind="aggregation" />
           </div>
-          <p className="text-sm leading-6 text-slate-200">{brief.summary}</p>
+          <p className="text-sm leading-6 text-slate-700">{brief.summary}</p>
           {brief.uncertaintyNote ? (
-            <p className="rounded-md border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-100">
+            <p className="rounded-md border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-900">
               {brief.uncertaintyNote}
             </p>
           ) : null}
@@ -229,7 +229,7 @@ export function SearchClient() {
                 {brief.triedAlreadyStats.map((stat) => (
                   <li
                     key={stat.action}
-                    className="rounded-lg border border-gs-border bg-black/20 p-3 text-sm"
+                    className="rounded-lg border border-gs-border bg-slate-50 p-3 text-sm"
                   >
                     <p className="font-medium">{stat.action}</p>
                     <p className="gs-mono mt-1 text-xs text-gs-muted">

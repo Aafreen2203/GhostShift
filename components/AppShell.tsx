@@ -105,8 +105,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               href={href}
               className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm transition ${
                 active
-                  ? "border border-cyan-400/30 bg-cyan-400/10 text-white"
-                  : "text-gs-muted hover:bg-white/5 hover:text-white"
+                  ? "border border-cyan-600/30 bg-cyan-50 text-slate-900"
+                  : "text-gs-muted hover:bg-slate-100 hover:text-slate-900"
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -124,7 +124,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {services.map((service) => (
             <li key={service._id} className="flex items-center gap-2 text-xs">
               <span className={`h-1.5 w-1.5 rounded-full ${statusDot(service.status)}`} />
-              <span className="gs-mono text-slate-300">{service.name}</span>
+              <span className="gs-mono text-slate-700">{service.name}</span>
             </li>
           ))}
           {services.length === 0 ? (
@@ -175,7 +175,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-md p-2 text-gs-muted hover:bg-white/5"
+                className="rounded-md p-2 text-gs-muted hover:bg-slate-100"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -186,7 +186,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-gs-border bg-[#080b10]/85 backdrop-blur">
+        <header className="sticky top-0 z-30 border-b border-gs-border bg-white/90 backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
             <div className="flex items-center gap-3">
               <button
@@ -201,7 +201,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <p className="text-[10px] uppercase tracking-[0.2em] text-gs-muted">
                   GhostShift
                 </p>
-                <h1 className="text-sm font-semibold text-white">
+                <h1 className="text-sm font-semibold text-slate-900">
                   {pageTitle(pathname)}
                 </h1>
               </div>
@@ -210,7 +210,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <span className="rounded-full border border-gs-border bg-gs-soft px-2.5 py-1 gs-mono text-gs-cyan">
                 DEMO
               </span>
-              <span className="rounded-full border border-gs-border bg-gs-soft px-2.5 py-1">
+              <span className="rounded-full border border-gs-border bg-gs-soft px-2.5 py-1 text-slate-700">
                 <span
                   className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${
                     mongoOk ? "bg-gs-success" : "bg-gs-critical"
@@ -218,7 +218,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 />
                 MongoDB {mongoOk ? "Connected" : "Checking"}
               </span>
-              <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-cyan-200">
+              <span className="rounded-full border border-cyan-600/25 bg-cyan-50 px-2.5 py-1 text-cyan-800">
                 <span className="gs-pulse mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-gs-cyan" />
                 AI Memory Online
               </span>

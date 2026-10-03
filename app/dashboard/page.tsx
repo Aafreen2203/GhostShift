@@ -92,11 +92,11 @@ export default function DashboardPage() {
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((item) => (
-            <div key={item} className="gs-panel h-36 animate-pulse bg-white/5" />
+            <div key={item} className="gs-panel h-36 animate-pulse bg-slate-100" />
           ))}
         </div>
       ) : null}
-      {error ? <p className="text-sm text-red-300">{error}</p> : null}
+      {error ? <p className="text-sm text-red-700">{error}</p> : null}
 
       {!loading && !error && services.length === 0 ? (
         <p className="text-sm text-gs-muted">No services yet. Run npm run seed.</p>
@@ -117,7 +117,7 @@ export default function DashboardPage() {
                 Active Incident
               </p>
             </div>
-            <span className="rounded-full border border-red-500/40 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase text-red-300">
+            <span className="rounded-full border border-red-500/40 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase text-red-700">
               {active.severity}
             </span>
           </div>
@@ -125,18 +125,18 @@ export default function DashboardPage() {
           <h2 className="mt-1 text-xl font-semibold uppercase tracking-wide">
             {activeService?.name ?? active.serviceId}
           </h2>
-          <p className="mt-2 text-sm text-slate-300">{active.summary}</p>
+          <p className="mt-2 text-sm text-slate-600">{active.summary}</p>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-lg border border-gs-border bg-black/25 p-3">
+            <div className="rounded-lg border border-gs-border bg-slate-50 p-3">
               <p className="text-[10px] uppercase tracking-wider text-gs-muted">
                 Status
               </p>
-              <p className="mt-1 text-sm font-semibold uppercase text-red-300">
+              <p className="mt-1 text-sm font-semibold uppercase text-red-700">
                 {active.status}
               </p>
             </div>
-            <div className="rounded-lg border border-gs-border bg-black/25 p-3">
+            <div className="rounded-lg border border-gs-border bg-slate-50 p-3">
               <p className="text-[10px] uppercase tracking-wider text-gs-muted">
                 Started
               </p>
@@ -144,7 +144,7 @@ export default function DashboardPage() {
                 {new Date(active.createdAt).toLocaleTimeString()}
               </p>
             </div>
-            <div className="rounded-lg border border-gs-border bg-black/25 p-3">
+            <div className="rounded-lg border border-gs-border bg-slate-50 p-3">
               <p className="text-[10px] uppercase tracking-wider text-gs-muted">
                 Pool config
               </p>
@@ -169,7 +169,7 @@ export default function DashboardPage() {
         </section>
       ) : !loading && !error ? (
         <section className="gs-panel border-dashed p-5">
-          <p className="text-sm font-medium text-slate-200">No active incidents</p>
+          <p className="text-sm font-medium text-slate-700">No active incidents</p>
           <p className="mt-1 text-sm text-gs-muted">
             All systems operating normally. Use the simulator to open a demo
             incident.

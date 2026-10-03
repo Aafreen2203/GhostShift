@@ -7,17 +7,17 @@ const outcomeMeta: Record<
 > = {
   failed: {
     label: "FAILED",
-    className: "border-red-500/40 bg-red-500/10 text-red-300",
+    className: "border-red-500/40 bg-red-500/10 text-red-700",
     Icon: XCircle,
   },
   temporary: {
     label: "TEMPORARY",
-    className: "border-amber-500/40 bg-amber-500/10 text-amber-200",
+    className: "border-amber-500/40 bg-amber-500/10 text-amber-800",
     Icon: Clock3,
   },
   resolved: {
     label: "RESOLVED",
-    className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
+    className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700",
     Icon: CheckCircle2,
   },
 };
@@ -70,7 +70,7 @@ export function ActionHistory({ actions }: { actions: IncidentAction[] }) {
             <p className="mt-3 text-xs uppercase tracking-wider text-gs-muted">
               Result
             </p>
-            <p className="mt-1 text-sm text-slate-300">{action.result}</p>
+            <p className="mt-1 text-sm text-slate-600">{action.result}</p>
           </li>
         );
       })}

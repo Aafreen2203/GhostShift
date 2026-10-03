@@ -2,9 +2,9 @@ import { Server } from "lucide-react";
 import type { Service, ServiceStatus } from "@/types/service";
 
 const statusStyles: Record<ServiceStatus, string> = {
-  healthy: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
-  warning: "border-amber-500/30 bg-amber-500/10 text-amber-200",
-  incident: "border-red-500/40 bg-red-500/10 text-red-300",
+  healthy: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700",
+  warning: "border-amber-500/30 bg-amber-500/10 text-amber-800",
+  incident: "border-red-500/40 bg-red-500/10 text-red-700",
 };
 
 const edgeStyles: Record<ServiceStatus, string> = {
@@ -43,21 +43,21 @@ export function SystemStatus({ service }: { service: Service }) {
       <dl className="mt-4 grid grid-cols-2 gap-3 text-xs">
         <div>
           <dt className="text-gs-muted">Database</dt>
-          <dd className="gs-mono mt-1 text-slate-200">{db}</dd>
+          <dd className="gs-mono mt-1 text-slate-700">{db}</dd>
         </div>
         <div>
           <dt className="text-gs-muted">Pool max</dt>
-          <dd className="gs-mono mt-1 text-slate-200">{pool}</dd>
+          <dd className="gs-mono mt-1 text-slate-700">{pool}</dd>
         </div>
         <div>
           <dt className="text-gs-muted">Timeout</dt>
-          <dd className="gs-mono mt-1 text-slate-200">
+          <dd className="gs-mono mt-1 text-slate-700">
             {timeout === "—" ? "—" : `${timeout} ms`}
           </dd>
         </div>
         <div>
           <dt className="text-gs-muted">Service ID</dt>
-          <dd className="gs-mono mt-1 text-slate-200">{service._id}</dd>
+          <dd className="gs-mono mt-1 text-slate-700">{service._id}</dd>
         </div>
       </dl>
     </article>

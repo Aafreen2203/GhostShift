@@ -33,10 +33,10 @@ export function MongoTracePanel({
         aria-label="Close MongoDB trace"
         onClick={onClose}
       />
-      <aside className="flex h-full w-full max-w-md flex-col border-l border-emerald-500/30 bg-[#0a1210] shadow-2xl">
+      <aside className="flex h-full w-full max-w-md flex-col border-l border-emerald-500/30 bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-emerald-500/20 px-4 py-3">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-300">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-700">
               MongoDB Trace
             </p>
             <p className="mt-1 text-xs text-gs-muted">
@@ -46,7 +46,7 @@ export function MongoTracePanel({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md border border-gs-border p-2 text-gs-muted hover:text-white"
+            className="rounded-md border border-gs-border p-2 text-gs-muted hover:text-slate-900"
           >
             <X className="h-4 w-4" />
           </button>
@@ -54,7 +54,7 @@ export function MongoTracePanel({
 
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 text-sm">
           <TraceBlock title="✓ Query embedded">
-            <p className="gs-mono text-xs text-emerald-100">
+            <p className="gs-mono text-xs text-emerald-800">
               {MONGO_TRACE.embeddingDimensions}-dimensional vector
             </p>
             <p className="gs-mono text-[11px] text-gs-muted">
@@ -63,7 +63,7 @@ export function MongoTracePanel({
           </TraceBlock>
 
           <TraceBlock title="✓ Vector Search">
-            <p className="gs-mono text-xs text-emerald-100">
+            <p className="gs-mono text-xs text-emerald-800">
               {searchLabel(source)}
             </p>
             <p className="gs-mono text-[11px] text-gs-muted">
@@ -87,7 +87,7 @@ export function MongoTracePanel({
                     key={match.incidentId}
                     className="flex items-center justify-between gap-2 gs-mono text-xs"
                   >
-                    <span className="text-emerald-100">
+                    <span className="text-emerald-800">
                       {match.incidentId}
                       {match.title ? (
                         <span className="ml-2 font-sans text-[11px] text-gs-muted">
@@ -95,7 +95,7 @@ export function MongoTracePanel({
                         </span>
                       ) : null}
                     </span>
-                    <span className="text-cyan-200">
+                    <span className="text-cyan-700">
                       {match.score.toFixed(2)}
                     </span>
                   </li>
@@ -105,7 +105,7 @@ export function MongoTracePanel({
           </TraceBlock>
 
           <TraceBlock title="✓ Historical actions retrieved">
-            <p className="gs-mono text-xs text-emerald-100">
+            <p className="gs-mono text-xs text-emerald-800">
               Collection: {MONGO_TRACE.collections.actions}
             </p>
             {typeof data.actionsRetrieved === "number" ? (
@@ -125,9 +125,9 @@ export function MongoTracePanel({
                 {data.aggregations.map((row) => (
                   <li
                     key={row.action}
-                    className="rounded border border-emerald-500/15 bg-black/20 p-2"
+                    className="rounded border border-emerald-500/15 bg-slate-50 p-2"
                   >
-                    <p className="text-xs font-medium text-slate-100">
+                    <p className="text-xs font-medium text-slate-900">
                       {row.action}
                     </p>
                     <p className="gs-mono mt-1 text-[11px] text-gs-muted">
@@ -145,7 +145,7 @@ export function MongoTracePanel({
           </TraceBlock>
 
           <TraceBlock title="✓ Evidence passed to GhostShift AI">
-            <p className="gs-mono text-xs text-emerald-100">
+            <p className="gs-mono text-xs text-emerald-800">
               {(data.evidenceIds ?? data.matches.map((m) => m.incidentId)).join(
                 " · ",
               ) || "—"}
@@ -170,8 +170,8 @@ function TraceBlock({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] p-3">
-      <h3 className="text-xs font-semibold text-emerald-200">{title}</h3>
+    <section className="rounded-lg border border-emerald-500/20 bg-emerald-50/80 p-3">
+      <h3 className="text-xs font-semibold text-emerald-800">{title}</h3>
       <div className="mt-2 space-y-1">{children}</div>
     </section>
   );

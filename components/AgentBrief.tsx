@@ -111,7 +111,7 @@ export function AgentBrief({ incidentId }: { incidentId?: string }) {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-gs-muted">
           GhostShift Analysis
         </h2>
-        <p className="mt-2 text-sm text-slate-300">
+        <p className="mt-2 text-sm text-slate-600">
           Select an incident to analyse.
         </p>
       </section>
@@ -129,7 +129,7 @@ export function AgentBrief({ incidentId }: { incidentId?: string }) {
 
       {error ? (
         <section className="gs-panel border-amber-400/40 p-5">
-          <p className="text-sm text-amber-200">
+          <p className="text-sm text-amber-800">
             Historical evidence is available, but AI analysis is temporarily
             unavailable.
           </p>
@@ -154,7 +154,7 @@ export function AgentBrief({ incidentId }: { incidentId?: string }) {
               ? "Atlas Vector Search"
               : "embedding similarity"}
           </MongoCaption>
-          <p className="mt-2 text-sm text-slate-300">
+          <p className="mt-2 text-sm text-slate-600">
             Similar historical incident detected
           </p>
           <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
@@ -178,7 +178,7 @@ export function AgentBrief({ incidentId }: { incidentId?: string }) {
               </p>
             </div>
           </div>
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/5">
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
             <div
               className="h-full rounded-full bg-gradient-to-r from-gs-cyan to-gs-violet"
               style={{
@@ -187,11 +187,11 @@ export function AgentBrief({ incidentId }: { incidentId?: string }) {
             />
           </div>
           {topMatch.historicalRootCause ? (
-            <div className="mt-4 rounded-lg border border-gs-border bg-black/25 p-3">
+            <div className="mt-4 rounded-lg border border-gs-border bg-slate-50 p-3">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gs-warning">
                 Historical root cause
               </p>
-              <p className="mt-1 text-sm text-slate-200">
+              <p className="mt-1 text-sm text-slate-700">
                 {topMatch.historicalRootCause}
               </p>
               <p className="mt-2 text-xs text-gs-muted">
@@ -202,7 +202,7 @@ export function AgentBrief({ incidentId }: { incidentId?: string }) {
           <button
             type="button"
             onClick={() => setTraceOpen(true)}
-            className="mt-4 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-100 hover:border-emerald-400/60"
+            className="mt-4 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-800 hover:border-emerald-400/60"
           >
             View MongoDB Trace
           </button>
@@ -218,7 +218,7 @@ export function AgentBrief({ incidentId }: { incidentId?: string }) {
             </h2>
             <Sparkles className="h-3.5 w-3.5 text-gs-cyan" />
           </div>
-          <p className="mt-3 text-sm leading-6 text-slate-200">
+          <p className="mt-3 text-sm leading-6 text-slate-700">
             {brief.summary}
           </p>
           <p className="mt-2 text-xs text-gs-muted">
@@ -228,7 +228,7 @@ export function AgentBrief({ incidentId }: { incidentId?: string }) {
           </p>
 
           {brief.uncertaintyNote ? (
-            <p className="mt-4 rounded-lg border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-100">
+            <p className="mt-4 rounded-lg border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-900">
               {brief.uncertaintyNote}
             </p>
           ) : null}
@@ -242,12 +242,12 @@ export function AgentBrief({ incidentId }: { incidentId?: string }) {
                 {brief.recommendedNext.map((line, index) => (
                   <li
                     key={line}
-                    className="flex gap-3 rounded-lg border border-gs-border bg-black/20 px-3 py-2 text-sm"
+                    className="flex gap-3 rounded-lg border border-gs-border bg-slate-50 px-3 py-2 text-sm"
                   >
                     <span className="gs-mono text-gs-cyan">
                       {String(index + 1).padStart(2, "0")}
                     </span>
-                    <span className="text-slate-200">{line}</span>
+                    <span className="text-slate-700">{line}</span>
                   </li>
                 ))}
               </ol>
@@ -259,7 +259,7 @@ export function AgentBrief({ incidentId }: { incidentId?: string }) {
               <Link
                 key={id}
                 href={id.startsWith("INC") ? `/incidents/${id}` : "#"}
-                className="gs-mono rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-[11px] text-cyan-100 hover:border-cyan-300/50"
+                className="gs-mono rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-[11px] text-cyan-800 hover:border-cyan-300/50"
               >
                 {id}
               </Link>
@@ -284,23 +284,23 @@ export function AgentBrief({ incidentId }: { incidentId?: string }) {
             {brief.triedAlreadyStats.map((stat) => (
               <div
                 key={stat.action}
-                className="rounded-lg border border-gs-border bg-black/20 p-4"
+                className="rounded-lg border border-gs-border bg-slate-50 p-4"
               >
-                <p className="text-sm font-semibold text-white">{stat.action}</p>
+                <p className="text-sm font-semibold text-slate-900">{stat.action}</p>
                 <dl className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-                  <div className="rounded-md bg-white/5 p-2">
+                  <div className="rounded-md bg-slate-100 p-2">
                     <dt className="text-gs-muted">Attempts</dt>
-                    <dd className="gs-mono mt-1 text-base text-white">
+                    <dd className="gs-mono mt-1 text-base text-slate-900">
                       {stat.totalAttempts}
                     </dd>
                   </div>
-                  <div className="rounded-md bg-white/5 p-2">
+                  <div className="rounded-md bg-slate-100 p-2">
                     <dt className="text-gs-muted">Temporary</dt>
                     <dd className="gs-mono mt-1 text-base text-gs-warning">
                       {stat.temporary}
                     </dd>
                   </div>
-                  <div className="rounded-md bg-white/5 p-2">
+                  <div className="rounded-md bg-slate-100 p-2">
                     <dt className="text-gs-muted">Resolved</dt>
                     <dd className="gs-mono mt-1 text-base text-gs-success">
                       {stat.successful}
@@ -308,7 +308,7 @@ export function AgentBrief({ incidentId }: { incidentId?: string }) {
                   </div>
                 </dl>
                 {stat.summary ? (
-                  <p className="mt-3 text-sm text-slate-300">{stat.summary}</p>
+                  <p className="mt-3 text-sm text-slate-600">{stat.summary}</p>
                 ) : null}
               </div>
             ))}
@@ -328,7 +328,7 @@ export function AgentBrief({ incidentId }: { incidentId?: string }) {
             {otherMatches.map((item) => (
               <li
                 key={item.incidentId}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gs-border bg-black/20 px-3 py-2"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gs-border bg-slate-50 px-3 py-2"
               >
                 <div>
                   <p className="gs-mono text-[11px] text-gs-cyan">

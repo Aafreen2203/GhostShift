@@ -33,7 +33,7 @@ export function IncidentTimeline({ actions }: { actions: IncidentAction[] }) {
               ? new Date(action.timestamp).toLocaleTimeString()
               : "Unknown time"}
           </p>
-          <p className="mt-1 text-sm font-medium text-white">{action.action}</p>
+          <p className="mt-1 text-sm font-medium text-slate-900">{action.action}</p>
           <p className="mt-1 text-sm text-gs-muted">{action.result}</p>
         </li>
       ))}

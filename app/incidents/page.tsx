@@ -81,11 +81,11 @@ export default function IncidentsPage() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((item) => (
-            <div key={item} className="gs-panel h-28 animate-pulse bg-white/5" />
+            <div key={item} className="gs-panel h-28 animate-pulse bg-slate-100" />
           ))}
         </div>
       ) : null}
-      {error ? <p className="text-sm text-red-300">{error}</p> : null}
+      {error ? <p className="text-sm text-red-700">{error}</p> : null}
       {!loading && !error && incidents.length === 0 ? (
         <p className="text-sm text-gs-muted">No incidents yet. Run npm run seed.</p>
       ) : null}

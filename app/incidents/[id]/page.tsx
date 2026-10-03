@@ -84,12 +84,12 @@ export default function IncidentDetailPage() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="gs-panel h-28 animate-pulse bg-white/5" />
-        <div className="gs-panel h-48 animate-pulse bg-white/5" />
+        <div className="gs-panel h-28 animate-pulse bg-slate-100" />
+        <div className="gs-panel h-48 animate-pulse bg-slate-100" />
       </div>
     );
   }
-  if (error) return <p className="text-sm text-red-300">{error}</p>;
+  if (error) return <p className="text-sm text-red-700">{error}</p>;
   if (!incident) {
     return <p className="text-sm text-gs-muted">Incident not found.</p>;
   }
@@ -112,10 +112,10 @@ export default function IncidentDetailPage() {
             {incident.status === "active" ? "Live Incident" : "Historical Memory"}
           </p>
           <div className="flex flex-wrap gap-2">
-            <span className="rounded-full border border-red-500/40 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase text-red-300">
+            <span className="rounded-full border border-red-500/40 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase text-red-700">
               {incident.severity}
             </span>
-            <span className="rounded-full border border-gs-border bg-gs-soft px-2.5 py-1 text-[10px] font-semibold uppercase text-slate-300">
+            <span className="rounded-full border border-gs-border bg-gs-soft px-2.5 py-1 text-[10px] font-semibold uppercase text-slate-600">
               {incident.status}
             </span>
           </div>
@@ -124,7 +124,7 @@ export default function IncidentDetailPage() {
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">
           {incident.title}
         </h1>
-        <p className="mt-2 text-sm text-slate-300">{incident.summary}</p>
+        <p className="mt-2 text-sm text-slate-600">{incident.summary}</p>
         <p className="gs-mono mt-3 text-xs text-gs-muted">
           Started {new Date(incident.createdAt).toLocaleString()}
         </p>
@@ -135,7 +135,7 @@ export default function IncidentDetailPage() {
               Current System State
             </p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-lg border border-gs-border bg-black/25 p-3">
+              <div className="rounded-lg border border-gs-border bg-slate-50 p-3">
                 <p className="text-[10px] uppercase tracking-wider text-gs-muted">
                   DB Pool Max
                 </p>
@@ -143,23 +143,23 @@ export default function IncidentDetailPage() {
                   {poolMax !== null ? poolMax : "—"}
                 </p>
               </div>
-              <div className="rounded-lg border border-gs-border bg-black/25 p-3">
+              <div className="rounded-lg border border-gs-border bg-slate-50 p-3">
                 <p className="text-[10px] uppercase tracking-wider text-gs-muted">
                   Database
                 </p>
                 <p className="gs-mono mt-1 text-sm">{database ?? "—"}</p>
               </div>
-              <div className="rounded-lg border border-gs-border bg-black/25 p-3">
+              <div className="rounded-lg border border-gs-border bg-slate-50 p-3">
                 <p className="text-[10px] uppercase tracking-wider text-gs-muted">
                   Symptoms
                 </p>
                 <p className="gs-mono mt-1 text-lg">{incident.symptoms.length}</p>
               </div>
-              <div className="rounded-lg border border-gs-border bg-black/25 p-3">
+              <div className="rounded-lg border border-gs-border bg-slate-50 p-3">
                 <p className="text-[10px] uppercase tracking-wider text-gs-muted">
                   Severity
                 </p>
-                <p className="mt-1 text-sm font-semibold uppercase text-red-300">
+                <p className="mt-1 text-sm font-semibold uppercase text-red-700">
                   {incident.severity}
                 </p>
               </div>
@@ -184,7 +184,7 @@ export default function IncidentDetailPage() {
           {incident.symptoms.map((symptom) => (
             <li
               key={symptom}
-              className="rounded-md border border-gs-border bg-black/20 px-3 py-2 text-sm text-slate-200"
+              className="rounded-md border border-gs-border bg-slate-50 px-3 py-2 text-sm text-slate-700"
             >
               {symptom}
             </li>
@@ -198,7 +198,7 @@ export default function IncidentDetailPage() {
             <h2 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gs-warning">
               Historical Root Cause
             </h2>
-            <p className="mt-2 text-sm text-slate-200">
+            <p className="mt-2 text-sm text-slate-700">
               {incident.rootCause ?? "Not recorded on this memory item."}
             </p>
           </div>
@@ -206,7 +206,7 @@ export default function IncidentDetailPage() {
             <h2 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gs-success">
               Verified Resolution
             </h2>
-            <p className="mt-2 text-sm text-slate-200">
+            <p className="mt-2 text-sm text-slate-700">
               {incident.resolution ?? "Not recorded."}
             </p>
           </div>

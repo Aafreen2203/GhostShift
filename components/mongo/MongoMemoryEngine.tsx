@@ -149,7 +149,7 @@ export function MongoMemoryEngine({
   return (
     <section className="gs-panel border-emerald-500/25 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-300">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-700">
           👻 GhostShift Memory Engine
         </p>
         <p className="text-[10px] uppercase tracking-wider text-gs-muted">
@@ -172,15 +172,15 @@ export function MongoMemoryEngine({
                 current
                   ? "border-emerald-400/40 bg-emerald-500/10"
                   : done
-                    ? "border-gs-border bg-black/20"
+                    ? "border-gs-border bg-slate-50"
                     : "border-transparent bg-transparent opacity-45"
               }`}
             >
               <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
                 {done ? (
-                  <Check className="h-3.5 w-3.5 text-emerald-300" />
+                  <Check className="h-3.5 w-3.5 text-emerald-700" />
                 ) : current ? (
-                  <LoaderCircle className="h-3.5 w-3.5 animate-spin text-emerald-300" />
+                  <LoaderCircle className="h-3.5 w-3.5 animate-spin text-emerald-700" />
                 ) : (
                   <span className="h-1.5 w-1.5 rounded-full bg-gs-muted" />
                 )}
@@ -188,7 +188,7 @@ export function MongoMemoryEngine({
               <div className="min-w-0">
                 <p
                   className={`text-sm font-medium ${
-                    isMongo ? "text-emerald-100" : "text-slate-100"
+                    isMongo ? "text-emerald-800" : "text-slate-900"
                   }`}
                 >
                   {stage.title}

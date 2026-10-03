@@ -44,7 +44,7 @@ export function KnowledgeFreshness({ incidentId }: { incidentId: string }) {
   }, [incidentId]);
 
   if (error) {
-    return <p className="text-sm text-red-300">{error}</p>;
+    return <p className="text-sm text-red-700">{error}</p>;
   }
   if (!report) {
     return (
@@ -76,8 +76,8 @@ export function KnowledgeFreshness({ incidentId }: { incidentId: string }) {
           <span
             className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
               report.outdated
-                ? "border-amber-400/40 bg-amber-400/10 text-amber-200"
-                : "border-emerald-400/40 bg-emerald-400/10 text-emerald-200"
+                ? "border-amber-400/40 bg-amber-400/10 text-amber-800"
+                : "border-emerald-400/40 bg-emerald-400/10 text-emerald-700"
             }`}
           >
             {report.outdated ? "VERIFY BEFORE REUSE" : "CONFIG ALIGNED"}
@@ -89,18 +89,18 @@ export function KnowledgeFreshness({ incidentId }: { incidentId: string }) {
         Compared from MongoDB incident + service documents
       </MongoCaption>
 
-      <p className="mt-3 text-sm text-slate-300">
+      <p className="mt-3 text-sm text-slate-600">
         {report.outdated
           ? "Historical infrastructure differs from the current environment."
           : "Historical knowledge matches current service configuration."}
       </p>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto_1fr]">
-        <div className="rounded-lg border border-gs-border bg-black/20 p-3">
+        <div className="rounded-lg border border-gs-border bg-slate-50 p-3">
           <p className="text-[10px] uppercase tracking-wider text-gs-muted">
             Historical notes
           </p>
-          <ul className="mt-2 space-y-1 text-sm text-slate-300">
+          <ul className="mt-2 space-y-1 text-sm text-slate-600">
             {report.notes.length > 0 ? (
               report.notes.map((note) => (
                 <li key={note} className="gs-mono text-xs leading-5">
@@ -115,7 +115,7 @@ export function KnowledgeFreshness({ incidentId }: { incidentId: string }) {
         <div className="hidden items-center justify-center text-gs-muted sm:flex">
           →
         </div>
-        <div className="rounded-lg border border-gs-border bg-black/20 p-3">
+        <div className="rounded-lg border border-gs-border bg-slate-50 p-3">
           <p className="text-[10px] uppercase tracking-wider text-gs-muted">
             Current service
           </p>

@@ -52,20 +52,20 @@ export function SimilarIncidentCard({
         ) : null}
       </div>
       {pct !== null ? (
-        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/5">
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
           <div
             className="h-full rounded-full bg-gradient-to-r from-gs-cyan to-gs-violet"
             style={{ width: `${pct}%` }}
           />
         </div>
       ) : null}
-      <p className="mt-3 text-sm text-slate-300">{incident.summary}</p>
+      <p className="mt-3 text-sm text-slate-600">{incident.summary}</p>
       {incident.rootCause ? (
         <p className="mt-3 text-xs">
           <span className="font-semibold uppercase tracking-wider text-gs-muted">
             Historical root cause:{" "}
           </span>
-          <span className="text-slate-200">{incident.rootCause}</span>
+          <span className="text-slate-700">{incident.rootCause}</span>
         </p>
       ) : null}
       {incident.resolution ? (
@@ -73,7 +73,7 @@ export function SimilarIncidentCard({
           <span className="font-semibold uppercase tracking-wider text-gs-muted">
             Previous resolution:{" "}
           </span>
-          <span className="text-slate-200">{incident.resolution}</span>
+          <span className="text-slate-700">{incident.resolution}</span>
         </p>
       ) : null}
       <Link
