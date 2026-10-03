@@ -1,0 +1,1 @@
+{"version":3,"file":"evidence.d.ts","sourceRoot":"","sources":["../../../src/ai/types/evidence.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,kBAAkB,GAC1B,qBAAqB,GACrB,gBAAgB,GAChB,cAAc,GACd,gBAAgB,CAAC;AAErB,MAAM,WAAW,QAAQ;IACvB,QAAQ,EAAE,MAAM,CAAC;IACjB,UAAU,EAAE,kBAAkB,CAAC;IAC/B,KAAK,EAAE,MAAM,CAAC;IACd,cAAc,CAAC,EAAE,OAAO,CAAC;CAC1B"}
