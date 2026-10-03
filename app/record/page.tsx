@@ -64,18 +64,23 @@ export default function RecordPage() {
   }
 
   return (
-    <main className="max-w-2xl space-y-6">
+    <main className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gs-muted">
+          Write memory
+        </p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
           Record an Incident
         </h1>
-
-        <p className="mt-1 text-sm text-slate-600">
-          Record a resolved incident so other engineers can learn from it.
+        <p className="mt-1 text-sm text-gs-muted">
+          Save a verified resolution into MongoDB organizational memory.
         </p>
       </div>
 
-      <form className="space-y-4" onSubmit={(event) => void onSubmit(event)}>
+      <form
+        className="gs-panel space-y-4 p-5"
+        onSubmit={(event) => void onSubmit(event)}
+      >
         <div className="space-y-1">
           <label htmlFor="service" className="block text-sm font-medium">
             Service
@@ -84,7 +89,7 @@ export default function RecordPage() {
             id="service"
             value={serviceId}
             onChange={(event) => setServiceId(event.target.value)}
-            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="gs-input"
           >
             <option value="payment-api">Payment API</option>
             <option value="auth-service">Authentication Service</option>
@@ -103,7 +108,7 @@ export default function RecordPage() {
             onChange={(event) => setTitle(event.target.value)}
             required
             placeholder="e.g. Payment API timeout"
-            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="gs-input"
           />
         </div>
 
@@ -118,7 +123,7 @@ export default function RecordPage() {
             onChange={(event) => setSummary(event.target.value)}
             required
             placeholder="Describe the problem, error messages, and what happened..."
-            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="gs-input"
           />
         </div>
 
@@ -132,22 +137,17 @@ export default function RecordPage() {
             value={rootCause}
             onChange={(event) => setRootCause(event.target.value)}
             placeholder="e.g. Database connection pool exhaustion"
-            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="gs-input"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1">
             <label htmlFor="resolvedDate" className="block text-sm font-medium">
               Date resolved
             </label>
-            <input
-              id="resolvedDate"
-              type="date"
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
-            />
+            <input id="resolvedDate" type="date" className="gs-input" />
           </div>
-
           <div className="space-y-1">
             <label htmlFor="resolvedBy" className="block text-sm font-medium">
               Resolved by
@@ -158,7 +158,7 @@ export default function RecordPage() {
               value={resolvedBy}
               onChange={(event) => setResolvedBy(event.target.value)}
               placeholder="e.g. Alex"
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+              className="gs-input"
             />
           </div>
         </div>
@@ -173,7 +173,7 @@ export default function RecordPage() {
             value={environment}
             onChange={(event) => setEnvironment(event.target.value)}
             placeholder="e.g. Payment API v2.3.1, MongoDB Atlas, Docker"
-            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="gs-input"
           />
         </div>
 
@@ -188,7 +188,7 @@ export default function RecordPage() {
             onChange={(event) => setResolution(event.target.value)}
             required
             placeholder="Describe how the problem was resolved..."
-            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="gs-input"
           />
         </div>
 
@@ -201,7 +201,7 @@ export default function RecordPage() {
             type="file"
             accept="image/*"
             multiple
-            className="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="gs-input"
           />
         </div>
 
@@ -215,24 +215,24 @@ export default function RecordPage() {
             value={usefulLink}
             onChange={(event) => setUsefulLink(event.target.value)}
             placeholder="e.g. GitHub PR, documentation, logs..."
-            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="gs-input"
           />
         </div>
 
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-60"
+          className="gs-btn-primary rounded-md px-4 py-2.5 text-sm font-medium disabled:opacity-60"
         >
           {pending ? "Saving..." : "Save Incident"}
         </button>
       </form>
 
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      {error ? <p className="text-sm text-red-300">{error}</p> : null}
       {savedId ? (
-        <p className="text-sm text-emerald-800">
+        <p className="text-sm text-emerald-300">
           Saved as{" "}
-          <Link href={`/incidents/${savedId}`} className="underline">
+          <Link href={`/incidents/${savedId}`} className="gs-mono underline">
             {savedId}
           </Link>
           . This record can now be retrieved by Vector Search.

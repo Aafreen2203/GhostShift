@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { ActionHistory } from "@/components/ActionHistory";
@@ -14,7 +15,7 @@ export default function IncidentDetailPage() {
   const params = useParams<{ id: string }>();
   const incidentId = Array.isArray(params.id) ? params.id[0] : params.id;
   const [incident, setIncident] = useState<Incident | null>(null);
-  const [serviceName, setServiceName] = useState<string>("");
+  const [service, setService] = useState<Service | null>(null);
   const [actions, setActions] = useState<IncidentAction[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,14 +26,21 @@ export default function IncidentDetailPage() {
 
     async function load() {
       try {
-        const [incidentResponse, actionsResponse, servicesResponse] = await Promise.all([
-          fetch(`/api/incidents/${incidentId}`),
-          fetch(`/api/incidents/${incidentId}/actions`),
-          fetch("/api/services"),
-        ]);
-        const incidentBody = (await incidentResponse.json()) as Incident | { error?: string };
-        const actionsBody = (await actionsResponse.json()) as IncidentAction[] | { error?: string };
-        const servicesBody = (await servicesResponse.json()) as Service[] | { error?: string };
+        const [incidentResponse, actionsResponse, servicesResponse] =
+          await Promise.all([
+            fetch(`/api/incidents/${incidentId}`),
+            fetch(`/api/incidents/${incidentId}/actions`),
+            fetch("/api/services"),
+          ]);
+        const incidentBody = (await incidentResponse.json()) as
+          | Incident
+          | { error?: string };
+        const actionsBody = (await actionsResponse.json()) as
+          | IncidentAction[]
+          | { error?: string };
+        const servicesBody = (await servicesResponse.json()) as
+          | Service[]
+          | { error?: string };
 
         if (!incidentResponse.ok) {
           const message =
@@ -41,7 +49,11 @@ export default function IncidentDetailPage() {
               : "Failed to load incident";
           throw new Error(message);
         }
-        if (!actionsResponse.ok || !servicesResponse.ok || !Array.isArray(actionsBody)) {
+        if (
+          !actionsResponse.ok ||
+          !servicesResponse.ok ||
+          !Array.isArray(actionsBody)
+        ) {
           throw new Error("Failed to load incident details");
         }
 
@@ -50,9 +62,8 @@ export default function IncidentDetailPage() {
         if (!cancelled) {
           setIncident(loaded);
           setActions(actionsBody);
-          setServiceName(
-            services.find((service) => service._id === loaded.serviceId)?.name ??
-              loaded.serviceId,
+          setService(
+            services.find((item) => item._id === loaded.serviceId) ?? null,
           );
         }
       } catch (err) {
@@ -70,83 +81,161 @@ export default function IncidentDetailPage() {
     };
   }, [incidentId]);
 
-  if (loading) return <p className="text-sm text-slate-600">Loading incident...</p>;
-  if (error) return <p className="text-sm text-red-700">{error}</p>;
-  if (!incident) return <p className="text-sm text-slate-600">Incident not found.</p>;
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="gs-panel h-28 animate-pulse bg-white/5" />
+        <div className="gs-panel h-48 animate-pulse bg-white/5" />
+      </div>
+    );
+  }
+  if (error) return <p className="text-sm text-red-300">{error}</p>;
+  if (!incident) {
+    return <p className="text-sm text-gs-muted">Incident not found.</p>;
+  }
+
+  const poolMax =
+    typeof service?.currentConfig.connectionPoolMax === "number"
+      ? service.currentConfig.connectionPoolMax
+      : null;
+  const database =
+    typeof service?.currentConfig.database === "string"
+      ? service.currentConfig.database
+      : null;
 
   return (
     <main className="space-y-8">
-      <div>
-        <p className="text-sm text-slate-500">{serviceName}</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">{incident.title}</h1>
-        <p className="mt-2 text-sm text-slate-700">{incident.summary}</p>
-        <div className="mt-3 flex flex-wrap gap-2 text-sm">
-          <span className="rounded-full bg-slate-200 px-2 py-0.5 capitalize">
-            {incident.status}
-          </span>
-          <span className="rounded-full bg-slate-200 px-2 py-0.5 capitalize">
-            {incident.severity}
-          </span>
-          {incident.status === "active" ? (
-            <a
+      <section className="gs-panel p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gs-muted">
+            {service?.name ?? incident.serviceId} /{" "}
+            {incident.status === "active" ? "Live Incident" : "Historical Memory"}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-full border border-red-500/40 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase text-red-300">
+              {incident.severity}
+            </span>
+            <span className="rounded-full border border-gs-border bg-gs-soft px-2.5 py-1 text-[10px] font-semibold uppercase text-slate-300">
+              {incident.status}
+            </span>
+          </div>
+        </div>
+        <p className="gs-mono mt-3 text-xs text-gs-cyan">{incident._id}</p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+          {incident.title}
+        </h1>
+        <p className="mt-2 text-sm text-slate-300">{incident.summary}</p>
+        <p className="gs-mono mt-3 text-xs text-gs-muted">
+          Started {new Date(incident.createdAt).toLocaleString()}
+        </p>
+
+        {incident.status === "active" ? (
+          <div className="mt-5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gs-warning">
+              Current System State
+            </p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-lg border border-gs-border bg-black/25 p-3">
+                <p className="text-[10px] uppercase tracking-wider text-gs-muted">
+                  DB Pool Max
+                </p>
+                <p className="gs-mono mt-1 text-lg">
+                  {poolMax !== null ? poolMax : "—"}
+                </p>
+              </div>
+              <div className="rounded-lg border border-gs-border bg-black/25 p-3">
+                <p className="text-[10px] uppercase tracking-wider text-gs-muted">
+                  Database
+                </p>
+                <p className="gs-mono mt-1 text-sm">{database ?? "—"}</p>
+              </div>
+              <div className="rounded-lg border border-gs-border bg-black/25 p-3">
+                <p className="text-[10px] uppercase tracking-wider text-gs-muted">
+                  Symptoms
+                </p>
+                <p className="gs-mono mt-1 text-lg">{incident.symptoms.length}</p>
+              </div>
+              <div className="rounded-lg border border-gs-border bg-black/25 p-3">
+                <p className="text-[10px] uppercase tracking-wider text-gs-muted">
+                  Severity
+                </p>
+                <p className="mt-1 text-sm font-semibold uppercase text-red-300">
+                  {incident.severity}
+                </p>
+              </div>
+            </div>
+            <Link
               href={`/search?q=${encodeURIComponent(
                 `${incident.title}. ${incident.symptoms.join(". ")}`,
               )}`}
-              className="rounded-md bg-slate-900 px-3 py-1 text-white"
+              className="gs-btn-primary mt-5 inline-flex rounded-md px-4 py-2.5 text-sm font-medium"
             >
               Investigate with GhostShift
-            </a>
-          ) : null}
-        </div>
-        {incident.rootCause ? (
-          <p className="mt-3 text-sm">
-            <span className="font-medium">Historical root cause: </span>
-            {incident.rootCause}
-          </p>
-        ) : (
-          <p className="mt-3 text-sm text-slate-600">
-            Current incident — historical root cause is retrieved from similar memory,
-            not assumed.
-          </p>
-        )}
-      </div>
+            </Link>
+          </div>
+        ) : null}
+      </section>
 
-      <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Symptoms</h2>
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+      <section className="gs-panel p-5">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-gs-muted">
+          Observed Symptoms
+        </h2>
+        <ul className="mt-3 space-y-2">
           {incident.symptoms.map((symptom) => (
-            <li key={symptom}>{symptom}</li>
+            <li
+              key={symptom}
+              className="rounded-md border border-gs-border bg-black/20 px-3 py-2 text-sm text-slate-200"
+            >
+              {symptom}
+            </li>
           ))}
         </ul>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Root cause
-          </h2>
-          <p className="mt-2 text-sm">{incident.rootCause ?? "Not recorded."}</p>
-        </div>
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Resolution
-          </h2>
-          <p className="mt-2 text-sm">{incident.resolution ?? "Not recorded."}</p>
-        </div>
-      </section>
-
-      <KnowledgeFreshness incidentId={incident._id} />
+      {incident.rootCause || incident.resolution ? (
+        <section className="grid gap-4 sm:grid-cols-2">
+          <div className="gs-panel p-4">
+            <h2 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gs-warning">
+              Historical Root Cause
+            </h2>
+            <p className="mt-2 text-sm text-slate-200">
+              {incident.rootCause ?? "Not recorded on this memory item."}
+            </p>
+          </div>
+          <div className="gs-panel p-4">
+            <h2 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gs-success">
+              Verified Resolution
+            </h2>
+            <p className="mt-2 text-sm text-slate-200">
+              {incident.resolution ?? "Not recorded."}
+            </p>
+          </div>
+        </section>
+      ) : (
+        <p className="text-sm text-gs-muted">
+          Current incident — historical root cause is retrieved from similar memory,
+          not assumed.
+        </p>
+      )}
 
       <AgentBrief incidentId={incident._id} />
 
+      <KnowledgeFreshness incidentId={incident._id} />
+
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Previous actions</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-gs-muted">
+          What the Previous Team Tried
+        </h2>
         <ActionHistory actions={actions} />
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Timeline</h2>
-        <IncidentTimeline actions={actions} />
+      <section className="gs-panel p-5">
+        <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-gs-muted">
+          Live Timeline
+        </h2>
+        <div className="mt-4">
+          <IncidentTimeline actions={actions} />
+        </div>
       </section>
     </main>
   );

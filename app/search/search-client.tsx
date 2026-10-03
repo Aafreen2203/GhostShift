@@ -1,8 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Search } from "lucide-react";
 import { SimilarIncidentCard } from "@/components/SimilarIncidentCard";
+import { MongoBadge, MongoCaption } from "@/components/mongo/MongoBadge";
+import { MongoMemoryEngine } from "@/components/mongo/MongoMemoryEngine";
+import { MongoTracePanel } from "@/components/mongo/MongoTracePanel";
+import type { MongoTraceData } from "@/components/mongo/types";
 import type { Incident } from "@/types/incident";
 
 type SearchMatch = {
@@ -25,6 +30,14 @@ type SearchBrief = {
   triedAlreadyStats?: TriedAlreadyStat[];
   recommendedNext: string[];
   uncertaintyNote?: string;
+  evidenceIds?: string[];
+  aiSource?: "evidence_only" | "openai_grounded";
+  similar?: Array<{
+    incidentId: string;
+    title: string;
+    score: number;
+    source: string;
+  }>;
 };
 
 export function SearchClient() {
@@ -37,9 +50,12 @@ export function SearchClient() {
   const [sourceNote, setSourceNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [traceOpen, setTraceOpen] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
   async function runSearch(nextQuery = query) {
     setLoading(true);
+    setHasSearched(true);
     setError(null);
     setBrief(null);
     setMatches([]);
@@ -66,7 +82,7 @@ export function SearchClient() {
       const sources = new Set(nextMatches.map((match) => match.source));
       setSourceNote(
         sources.has("atlas_vector_search")
-          ? "Ranked with MongoDB Atlas Vector Search."
+          ? "Retrieved via MongoDB Atlas Vector Search."
           : "Ranked with cosine similarity over stored embeddings (Atlas Vector Search index unavailable or empty).",
       );
     } catch (err) {
@@ -85,63 +101,138 @@ export function SearchClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
+  const traceData: MongoTraceData | null = useMemo(() => {
+    if (!hasSearched || (matches.length === 0 && !brief && !loading)) {
+      return loading
+        ? {
+            queryLabel: query,
+            matches: [],
+          }
+        : null;
+    }
+    return {
+      queryLabel: query,
+      searchSource: matches[0]?.source,
+      matches: matches.map((match) => ({
+        incidentId: match.incident._id,
+        title: match.incident.title,
+        score: match.score,
+        source: match.source,
+      })),
+      aggregations: brief?.triedAlreadyStats?.map((stat) => ({
+        action: stat.action,
+        totalAttempts: stat.totalAttempts,
+        temporary: stat.temporary,
+        successful: stat.successful,
+        failed: stat.failed,
+      })),
+      actionsRetrieved: brief?.triedAlready?.length,
+      evidenceIds:
+        brief?.evidenceIds ?? matches.map((match) => match.incident._id),
+      aiSource: brief?.aiSource,
+    };
+  }, [brief, hasSearched, loading, matches, query]);
+
   return (
-    <main className="max-w-3xl space-y-4">
+    <main className="mx-auto max-w-3xl space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Search memory</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Describe a live failure. GhostShift retrieves similar historical incidents and
-          prior actions from MongoDB.
+        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gs-muted">
+          Organizational memory
+        </p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+          Search organizational memory
+        </h1>
+        <p className="mt-1 text-sm text-gs-muted">
+          Describe the current failure. GhostShift retrieves similar historical
+          incidents and prior actions from MongoDB.
         </p>
       </div>
+
       <form
-        className="space-y-3"
+        className="gs-panel gs-panel-ai space-y-4 p-5"
         onSubmit={(event) => {
           event.preventDefault();
           void runSearch();
         }}
       >
         <label htmlFor="issue" className="block text-sm font-medium">
-          Describe the current issue...
+          Describe the current failure…
         </label>
         <textarea
           id="issue"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           rows={4}
-          className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+          placeholder="Payment requests intermittently time out when traffic increases."
+          className="gs-input"
         />
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-60"
-        >
-          {loading ? "Searching..." : "Search GhostShift Memory"}
-        </button>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-[11px] text-gs-muted">
+            Searching:{" "}
+            <span className="gs-mono text-slate-300">
+              incidents · actions · resolutions
+            </span>
+          </p>
+          <button
+            type="submit"
+            disabled={loading}
+            className="gs-btn-primary inline-flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium disabled:opacity-60"
+          >
+            <Search className="h-4 w-4" />
+            {loading ? "Searching…" : "Search Memory"}
+          </button>
+        </div>
       </form>
 
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
-      {sourceNote ? <p className="text-sm text-slate-600">{sourceNote}</p> : null}
+      {hasSearched ? (
+        <MongoMemoryEngine running={loading} data={traceData} />
+      ) : null}
+
+      {error ? <p className="text-sm text-red-300">{error}</p> : null}
+      {sourceNote ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <MongoBadge kind="vector" />
+          <MongoCaption>{sourceNote}</MongoCaption>
+          {matches.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => setTraceOpen(true)}
+              className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-[11px] text-emerald-100"
+            >
+              View MongoDB Trace
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       {brief ? (
-        <section className="space-y-3 rounded-lg border border-slate-200 bg-white p-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Evidence brief
-          </h2>
-          <p className="text-sm">{brief.summary}</p>
+        <section className="gs-panel gs-panel-ai space-y-3 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold uppercase tracking-wide">
+              Evidence Brief
+            </h2>
+            <MongoBadge kind="aggregation" />
+          </div>
+          <p className="text-sm leading-6 text-slate-200">{brief.summary}</p>
           {brief.uncertaintyNote ? (
-            <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm">
+            <p className="rounded-md border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-100">
               {brief.uncertaintyNote}
             </p>
           ) : null}
           {brief.triedAlreadyStats && brief.triedAlreadyStats.length > 0 ? (
             <div>
-              <h3 className="text-sm font-semibold">We&apos;ve tried that already</h3>
-              <ul className="mt-2 space-y-2 text-sm">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-gs-muted">
+                We&apos;ve tried that already
+              </h3>
+              <MongoCaption>Calculated with MongoDB Aggregation</MongoCaption>
+              <ul className="mt-2 space-y-2">
                 {brief.triedAlreadyStats.map((stat) => (
-                  <li key={stat.action} className="rounded border border-slate-200 p-2">
+                  <li
+                    key={stat.action}
+                    className="rounded-lg border border-gs-border bg-black/20 p-3 text-sm"
+                  >
                     <p className="font-medium">{stat.action}</p>
-                    <p className="text-slate-600">
+                    <p className="gs-mono mt-1 text-xs text-gs-muted">
                       Attempts {stat.totalAttempts} · Temporary {stat.temporary} ·
                       Permanent resolutions {stat.successful}
                     </p>
@@ -150,34 +241,33 @@ export function SearchClient() {
               </ul>
             </div>
           ) : null}
-          {brief.recommendedNext.length > 0 ? (
-            <div>
-              <h3 className="text-sm font-semibold">Historical resolutions</h3>
-              <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-slate-700">
-                {brief.recommendedNext.map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
         </section>
       ) : null}
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-          Similar historical incidents
+        <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-gs-muted">
+          Similar Historical Incidents
         </h2>
+        {!loading && hasSearched && matches.length === 0 && !error ? (
+          <p className="text-sm text-gs-muted">
+            No sufficiently similar incident found in organizational memory.
+          </p>
+        ) : null}
         {matches.map((match) => (
-          <div key={match.incident._id} className="space-y-1">
-            <SimilarIncidentCard incident={match.incident} score={match.score} />
-            {match.incident.rootCause ? (
-              <p className="px-1 text-sm text-slate-600">
-                Historical root cause: {match.incident.rootCause}
-              </p>
-            ) : null}
-          </div>
+          <SimilarIncidentCard
+            key={match.incident._id}
+            incident={match.incident}
+            score={match.score}
+            source={match.source}
+          />
         ))}
       </section>
+
+      <MongoTracePanel
+        open={traceOpen}
+        onClose={() => setTraceOpen(false)}
+        data={traceData}
+      />
     </main>
   );
 }

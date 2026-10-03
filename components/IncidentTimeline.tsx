@@ -1,3 +1,4 @@
+import { Circle } from "lucide-react";
 import type { IncidentAction } from "@/types/action";
 
 export function IncidentTimeline({ actions }: { actions: IncidentAction[] }) {
@@ -6,19 +7,34 @@ export function IncidentTimeline({ actions }: { actions: IncidentAction[] }) {
   );
 
   if (ordered.length === 0) {
-    return <p className="text-sm text-slate-600">No timeline entries.</p>;
+    return <p className="text-sm text-gs-muted">No timeline entries.</p>;
   }
 
   return (
-    <ol className="space-y-4 border-l border-slate-300 pl-4">
+    <ol className="relative space-y-5 border-l border-gs-border pl-5">
       {ordered.map((action) => (
-        <li key={action._id ?? `${action.timestamp}-${action.action}`} className="relative">
-          <span className="absolute -left-[1.3rem] top-1.5 h-2.5 w-2.5 rounded-full bg-slate-500" />
-          <p className="text-xs text-slate-500">
-            {action.timestamp ? new Date(action.timestamp).toLocaleString() : "Unknown time"}
+        <li
+          key={action._id ?? `${action.timestamp}-${action.action}`}
+          className="relative"
+        >
+          <span className="absolute -left-[1.55rem] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-gs-elevated">
+            <Circle
+              className={`h-2.5 w-2.5 fill-current ${
+                action.outcome === "resolved"
+                  ? "text-gs-success"
+                  : action.outcome === "temporary"
+                    ? "text-gs-warning"
+                    : "text-gs-critical"
+              }`}
+            />
+          </span>
+          <p className="gs-mono text-[11px] text-gs-cyan">
+            {action.timestamp
+              ? new Date(action.timestamp).toLocaleTimeString()
+              : "Unknown time"}
           </p>
-          <p className="text-sm font-medium">{action.action}</p>
-          <p className="text-sm text-slate-600">{action.result}</p>
+          <p className="mt-1 text-sm font-medium text-white">{action.action}</p>
+          <p className="mt-1 text-sm text-gs-muted">{action.result}</p>
         </li>
       ))}
     </ol>

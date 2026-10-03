@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Activity, Ghost, Radio, RotateCcw } from "lucide-react";
+import { ChangeStreamToast } from "@/components/mongo/ChangeStreamToast";
+import { MongoBadge, MongoCaption } from "@/components/mongo/MongoBadge";
 import type { SystemEvent } from "@/types/event";
 
 type Preset = {
@@ -24,10 +27,9 @@ type StreamMessage =
     }
   | { type: "error"; message: string };
 
-/** Mirrors data/demo-events.json for the live demo sequence. */
 const presets: Preset[] = [
   {
-    label: "DB connections 75%",
+    label: "Set DB Load 75%",
     event: {
       serviceId: "payment-api",
       type: "metric",
@@ -39,7 +41,7 @@ const presets: Preset[] = [
     },
   },
   {
-    label: "DB connections 87%",
+    label: "Set DB Load 87%",
     event: {
       serviceId: "payment-api",
       type: "metric",
@@ -51,7 +53,7 @@ const presets: Preset[] = [
     },
   },
   {
-    label: "DB connections 96%",
+    label: "Set DB Load 96%",
     event: {
       serviceId: "payment-api",
       type: "metric",
@@ -63,7 +65,7 @@ const presets: Preset[] = [
     },
   },
   {
-    label: "Payment latency increasing",
+    label: "Trigger Latency Spike",
     event: {
       serviceId: "payment-api",
       type: "warning",
@@ -74,7 +76,7 @@ const presets: Preset[] = [
     },
   },
   {
-    label: "Payment timeout rate increasing",
+    label: "Trigger Payment Timeout",
     event: {
       serviceId: "payment-api",
       type: "error",
@@ -93,6 +95,9 @@ export function EventSimulator() {
   const [posted, setPosted] = useState<PostedEvent[]>([]);
   const [note, setNote] = useState<string | null>(null);
   const [live, setLive] = useState<string[]>([]);
+  const [newEventFlash, setNewEventFlash] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [pipelinePulse, setPipelinePulse] = useState(false);
   const [openedIncidentId, setOpenedIncidentId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -102,19 +107,25 @@ export function EventSimulator() {
       try {
         const data = JSON.parse(message.data) as StreamMessage;
         if (data.type === "ready") {
-          setLive((current) => [`ready: ${data.message}`, ...current].slice(0, 8));
+          setLive((current) => [`ready: ${data.message}`, ...current].slice(0, 10));
         } else if (data.type === "event") {
+          setNewEventFlash(true);
+          setToastVisible(true);
+          setPipelinePulse(true);
+          window.setTimeout(() => setNewEventFlash(false), 1200);
+          window.setTimeout(() => setToastVisible(false), 2800);
+          window.setTimeout(() => setPipelinePulse(false), 1600);
           setLive((current) =>
-            [`event: ${data.event.message} · ${data.reason}`, ...current].slice(
-              0,
-              8,
-            ),
+            [
+              `> ${data.event._id ?? "EVT"} ${data.event.message}`,
+              ...current,
+            ].slice(0, 10),
           );
           if (data.openedIncidentId) {
             setOpenedIncidentId(data.openedIncidentId);
           }
         } else if (data.type === "error") {
-          setLive((current) => [`error: ${data.message}`, ...current].slice(0, 8));
+          setLive((current) => [`error: ${data.message}`, ...current].slice(0, 10));
         }
       } catch {
         // ignore malformed SSE payloads
@@ -123,7 +134,7 @@ export function EventSimulator() {
 
     source.onerror = () => {
       setLive((current) =>
-        ["stream disconnected; retrying...", ...current].slice(0, 8),
+        ["stream disconnected; retrying...", ...current].slice(0, 10),
       );
     };
 
@@ -150,7 +161,7 @@ export function EventSimulator() {
       if (!response.ok) {
         throw new Error(body.error ?? "Failed to store event");
       }
-      setPosted((current) => [body, ...current].slice(0, 6));
+      setPosted((current) => [body, ...current].slice(0, 8));
       if (body.openedIncidentId) {
         setOpenedIncidentId(body.openedIncidentId);
         setNote(body.detectionReason ?? "Incident opened from event.");
@@ -168,7 +179,10 @@ export function EventSimulator() {
     setError(null);
     try {
       const response = await fetch("/api/demo/reset", { method: "POST" });
-      const body = (await response.json()) as { message?: string; error?: string };
+      const body = (await response.json()) as {
+        message?: string;
+        error?: string;
+      };
       if (!response.ok) {
         throw new Error(body.error ?? "Failed to reset demo");
       }
@@ -182,96 +196,185 @@ export function EventSimulator() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-2">
-        {presets.map((preset) => (
+      <div className="gs-panel p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-gs-muted">
+              Control console
+            </p>
+            <h2 className="mt-1 text-lg font-semibold">Incident Simulator</h2>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <MongoBadge kind="changestream" />
+            <span className="rounded-full border border-gs-border bg-gs-soft px-2.5 py-1 text-[10px] uppercase tracking-wider text-gs-cyan">
+              Synthetic Monitoring Data
+            </span>
+          </div>
+        </div>
+        <p className="mt-2 gs-mono text-xs text-gs-muted">Service: payment-api</p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {presets.map((preset) => (
+            <button
+              key={preset.label}
+              type="button"
+              onClick={() => void postEvent(preset)}
+              disabled={pendingLabel !== null}
+              className="gs-btn-ghost min-h-12 rounded-md px-3 py-3 text-left text-sm disabled:opacity-50"
+            >
+              <Activity className="mb-1 h-3.5 w-3.5 text-gs-cyan" />
+              {pendingLabel === preset.label ? "Sending..." : preset.label}
+            </button>
+          ))}
           <button
-            key={preset.label}
             type="button"
-            onClick={() => void postEvent(preset)}
-            disabled={pendingLabel !== null}
-            className="rounded-md bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60"
+            onClick={() => void resetDemo()}
+            className="gs-btn-ghost min-h-12 rounded-md px-3 py-3 text-left text-sm"
           >
-            {pendingLabel === preset.label ? "Sending..." : preset.label}
+            <RotateCcw className="mb-1 h-3.5 w-3.5 text-gs-warning" />
+            Reset Demo
           </button>
-        ))}
-        <button
-          type="button"
-          onClick={() => void resetDemo()}
-          className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
-        >
-          Reset demo
-        </button>
+        </div>
+        <p className="mt-4 text-xs text-gs-muted">
+          Demo sequence: raise DB pressure, then latency/timeouts. Critical DB
+          pressure (96%) opens an active Payment API incident. Live updates stream
+          from MongoDB Change Streams.
+        </p>
       </div>
 
-      <p className="text-sm text-slate-600">
-        Demo sequence: raise DB pressure, then latency/timeouts. Critical DB pressure
-        (96%) or timeout-after-pressure opens an active Payment API incident. Live
-        updates use MongoDB Change Streams via <code>/api/stream</code>.
-      </p>
-
       {openedIncidentId ? (
-        <p className="text-sm">
-          Active incident:{" "}
-          <Link
-            href={`/incidents/${openedIncidentId}`}
-            className="font-medium underline"
-          >
-            {openedIncidentId}
-          </Link>
-          {" · "}
-          <Link
-            href={`/search?q=${encodeURIComponent(
-              "Payment API intermittently timing out and database connections near capacity",
-            )}`}
-            className="font-medium underline"
-          >
-            Investigate with GhostShift
-          </Link>
-        </p>
-      ) : null}
-
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
-      {note ? <p className="text-sm text-slate-700">{note}</p> : null}
-
-      {posted.length > 0 ? (
-        <div className="space-y-2">
-          <h2 className="text-sm font-semibold">CURRENT signals (stored events)</h2>
-          <ul className="space-y-2">
-            {posted.map((event) => (
-              <li
-                key={event._id}
-                className="rounded-lg border border-slate-200 bg-white p-3 text-sm"
-              >
-                <p className="font-medium">{event.message}</p>
-                <p className="text-slate-600">
-                  {event.serviceId} · {event.type} · {event.severity}
-                  {typeof event.value === "number" && event.max
-                    ? ` · ${event.value}/${event.max}`
-                    : ""}
-                </p>
-              </li>
-            ))}
-          </ul>
+        <div className="gs-panel gs-panel-ai p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Ghost className="h-4 w-4 text-gs-cyan" />
+            <p className="text-sm font-medium">Active incident opened</p>
+          </div>
+          <p className="gs-mono mt-2 text-xs text-gs-cyan">{openedIncidentId}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link
+              href={`/incidents/${openedIncidentId}`}
+              className="gs-btn-primary rounded-md px-3 py-2 text-sm"
+            >
+              Investigate with GhostShift
+            </Link>
+            <Link
+              href={`/search?q=${encodeURIComponent(
+                "Payment API intermittently timing out and database connections near capacity",
+              )}`}
+              className="gs-btn-ghost rounded-md px-3 py-2 text-sm"
+            >
+              Search Memory
+            </Link>
+          </div>
         </div>
       ) : null}
 
-      <div className="space-y-2">
-        <h2 className="text-sm font-semibold">Live Change Stream</h2>
-        {live.length === 0 ? (
-          <p className="text-sm text-slate-600">Waiting for stream messages...</p>
-        ) : (
-          <ul className="space-y-1 text-sm text-slate-700">
-            {live.map((line, index) => (
-              <li
-                key={`${line}-${index}`}
-                className="rounded border border-slate-200 bg-white px-3 py-2"
-              >
-                {line}
-              </li>
-            ))}
-          </ul>
-        )}
+      {error ? <p className="text-sm text-red-300">{error}</p> : null}
+      {note ? <p className="text-sm text-slate-300">{note}</p> : null}
+
+      <section
+        className={`gs-panel border-emerald-500/25 p-4 ${
+          pipelinePulse ? "gs-new-event" : ""
+        }`}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
+            MongoDB live path
+          </h3>
+          <MongoBadge kind="changestream" />
+        </div>
+        <MongoCaption>Monitoring event → events collection → Change Stream → UI</MongoCaption>
+        <ol className="mt-3 grid gap-2 sm:grid-cols-4">
+          {[
+            "Monitoring event",
+            "events.insertOne()",
+            "Change Stream",
+            "GhostShift UI",
+          ].map((step, index) => (
+            <li
+              key={step}
+              className={`rounded-md border px-2 py-2 text-center text-[11px] ${
+                pipelinePulse
+                  ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-100"
+                  : "border-gs-border bg-black/20 text-gs-muted"
+              }`}
+            >
+              <span className="gs-mono text-emerald-300/80">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <p className="mt-1">{step}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section className="gs-panel p-4">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold uppercase tracking-wide">
+              Current Signals
+            </h3>
+            {newEventFlash ? (
+              <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[10px] text-emerald-100">
+                NEW EVENT
+              </span>
+            ) : null}
+          </div>
+          {posted.length === 0 ? (
+            <p className="mt-3 text-sm text-gs-muted">
+              Fire a control to store synthetic events in MongoDB.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {posted.map((event) => (
+                <li
+                  key={event._id}
+                  className="gs-new-event rounded-md border border-gs-border bg-black/25 px-3 py-2"
+                >
+                  <p className="gs-mono text-[11px] text-gs-cyan">
+                    {event._id} · {event.metric ?? event.type}
+                    {typeof event.value === "number"
+                      ? ` = ${event.value}${event.max ? ` / ${event.max}` : ""}`
+                      : ""}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-200">{event.message}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="gs-panel p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Radio className="h-4 w-4 text-emerald-300" />
+              <h3 className="text-sm font-semibold uppercase tracking-wide">
+                Live Event Console
+              </h3>
+            </div>
+            <MongoBadge kind="changestream" />
+          </div>
+          <MongoCaption>Streaming from MongoDB Change Streams</MongoCaption>
+          <div className="mt-3 min-h-48 rounded-md border border-gs-border bg-[#05070b] p-3">
+            {live.length === 0 ? (
+              <p className="gs-mono text-xs text-gs-muted">
+                waiting for change stream…
+              </p>
+            ) : (
+              <ul className="space-y-1">
+                {live.map((line, index) => (
+                  <li
+                    key={`${line}-${index}`}
+                    className="gs-mono gs-new-event text-xs leading-5 text-emerald-300/90"
+                  >
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
       </div>
+
+      <ChangeStreamToast visible={toastVisible} />
     </div>
   );
 }

@@ -1,19 +1,188 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f1f5f9;
-  --foreground: #0f172a;
+  --gs-bg: #080b10;
+  --gs-bg-elevated: #0f141c;
+  --gs-bg-panel: #121821;
+  --gs-bg-soft: #18212d;
+  --gs-border: #243041;
+  --gs-border-strong: #334155;
+  --gs-text: #f1f5f9;
+  --gs-text-muted: #94a3b8;
+  --gs-cyan: #22d3ee;
+  --gs-violet: #8b5cf6;
+  --gs-success: #22c55e;
+  --gs-warning: #f59e0b;
+  --gs-critical: #ef4444;
+  --background: var(--gs-bg);
+  --foreground: var(--gs-text);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-gs-bg: var(--gs-bg);
+  --color-gs-elevated: var(--gs-bg-elevated);
+  --color-gs-panel: var(--gs-bg-panel);
+  --color-gs-soft: var(--gs-bg-soft);
+  --color-gs-border: var(--gs-border);
+  --color-gs-border-strong: var(--gs-border-strong);
+  --color-gs-muted: var(--gs-text-muted);
+  --color-gs-cyan: var(--gs-cyan);
+  --color-gs-violet: var(--gs-violet);
+  --color-gs-success: var(--gs-success);
+  --color-gs-warning: var(--gs-warning);
+  --color-gs-critical: var(--gs-critical);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+* {
+  border-color: var(--gs-border);
+}
+
+html {
+  color-scheme: dark;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(34, 211, 238, 0.08), transparent 55%),
+    radial-gradient(900px 500px at 90% 0%, rgba(139, 92, 246, 0.08), transparent 50%),
+    var(--gs-bg);
+  color: var(--gs-text);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  min-height: 100%;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.25);
+}
+
+.gs-panel {
+  background: linear-gradient(180deg, rgba(18, 24, 33, 0.96), rgba(15, 20, 28, 0.98));
+  border: 1px solid var(--gs-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+}
+
+.gs-panel-ai {
+  border-color: rgba(34, 211, 238, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(139, 92, 246, 0.12),
+    0 12px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(34, 211, 238, 0.08);
+}
+
+.gs-gradient-text {
+  background: linear-gradient(90deg, #22d3ee, #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gs-btn-primary {
+  background: linear-gradient(90deg, #0891b2, #7c3aed);
+  color: white;
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  transition: filter 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+}
+
+.gs-btn-primary:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.2);
+}
+
+.gs-btn-primary:focus-visible,
+.gs-btn-ghost:focus-visible,
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid rgba(34, 211, 238, 0.7);
+  outline-offset: 2px;
+}
+
+.gs-btn-ghost {
+  background: rgba(15, 20, 28, 0.8);
+  border: 1px solid var(--gs-border-strong);
+  color: var(--gs-text);
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.gs-btn-ghost:hover {
+  border-color: rgba(34, 211, 238, 0.45);
+  background: rgba(24, 33, 45, 0.95);
+}
+
+.gs-input {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--gs-border-strong);
+  background: #0b1017;
+  color: var(--gs-text);
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.gs-input:focus {
+  border-color: rgba(34, 211, 238, 0.55);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.12);
+}
+
+.gs-mono {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.gs-pulse {
+  animation: gs-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes gs-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.gs-scan {
+  position: relative;
+  overflow: hidden;
+}
+
+.gs-scan::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(34, 211, 238, 0.12),
+    transparent
+  );
+  transform: translateX(-100%);
+  animation: gs-scan 1.4s linear infinite;
+}
+
+@keyframes gs-scan {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.gs-new-event {
+  animation: gs-insert 0.45s ease-out;
+}
+
+@keyframes gs-insert {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
